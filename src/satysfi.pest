@@ -1,0 +1,205 @@
+// vim: fdm=marker
+
+WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
+COMMENT = _{ "%" ~ (!("\r" | "\n") ~ ANY)* ~ ("\r" | "\n") }
+
+program = _{ SOI ~ (preamble ~ "in")? ~ expr ~ EOI }
+
+// statement {{{
+
+preamble = _{ (
+    let_stmt
+    | let_block_stmt
+)+ }
+let_stmt = { "let" ~ var ~ (arg)* ~ "=" ~ expr }
+let_block_stmt = { "let-block" ~ (var)? ~ block_cmd_name ~ (arg)* ~ "=" ~ expr }
+
+// }}}
+
+// pattern {{{
+// let や match 式の左辺に来るもの．
+
+// }}}
+
+// expr {{{
+
+expr = {
+    bind_stmt ~ expr
+    | dyadic_expr
+    | application
+    | unary
+}
+
+application = {  // 関数適用
+    (var | modvar) ~ (
+            "?:" ~ unary
+            | "?*"
+            | unary
+    )+
+    | "command" ~ horizontal_cmd_name
+}
+
+unary = {  // 1つの項として扱えるもの．
+    block_text
+    | horizontal_text
+    | record
+    | list
+    | tuple
+    | "(" ~ bin_operator ~ ")"
+    | "(" ~ expr ~ ")"
+    | var
+    | modvar
+    | expr_with_mod
+    | constant
+}
+
+tuple = {
+    // () や (expr) は tuple 型にはならないので含めない
+    "(" ~ expr ~ ("," ~ expr)+ ~ ")"
+}
+
+list = {
+    "[" ~ "]"
+    | "[" ~ expr ~ (";" ~ expr)* ~ ";"? ~ "]"
+}
+
+record = {
+    "(" ~ "|" ~ "|" ~ ")"
+    | "(" ~ "|" ~ unary ~ "with" ~ record_inner ~ "|" ~ ")"
+    | "(" ~ "|" ~ record_inner ~ "|" ~ ")"
+}
+record_inner = { record_unit ~ (";" ~ record_unit)* ~ ";"? }
+record_unit = { var_ptn ~ "=" ~ expr }
+
+var = @{
+    !(reserved_word ~ !(ASCII_ALPHANUMERIC | "-"))  // 予約語は変数名にならない
+    ~ var_ptn
+}
+var_ptn = @{ ASCII_ALPHA_LOWER ~ (ASCII_ALPHANUMERIC | "-")* }
+module_name = @{ ASCII_ALPHA_UPPER ~ (ASCII_ALPHANUMERIC | "-")* }
+modvar = @{ module_name ~ "." ~ var_ptn }
+expr_with_mod = { expr_with_mod_begin ~ expr ~ ")" }
+    expr_with_mod_begin = @{ module_name ~ ".(" }
+
+reserved_word = {
+    // 文字数の多いものから順に書いていくこと
+    "let-block"
+    | "command"
+    | "false"
+    | "true"
+    | "with"
+    | "let"
+    | "in"
+}
+arg = { var }
+
+block_text = { "'<" ~ vertical_mode ~ ">" }
+horizontal_text = { "{" ~ horizontal_mode ~ "}" }
+
+dyadic_expr = {
+    ((var | modvar) ~ expr? | unary)
+    ~ bin_operator
+    ~ (dyadic_expr | (var | modvar) ~ expr? | unary)
+}
+
+bin_operator = @{
+    bin_operator_start ~ bin_operator_succ*
+    | "::"  // cons
+    | "mod"
+}
+    bin_operator_start = @{ "-" | "+" | "*" | "/" | "^" | "&" | "|" | "=" | "<" | ">" }
+    bin_operator_succ = @{
+        "-" | "+" | "*" | "/" | "^" | "&" | "|" | "=" | "<" | ">"
+        | "!" | ":" | "~" | "'" | "." | "?"
+    }
+
+bind_stmt = _{ let_in_stmt }
+let_in_stmt = { let_stmt ~ "in" }
+
+// }}}
+
+// constants {{{
+
+constant = _{
+    unit_const
+    | bool_const
+    | string_const
+    | length_const
+    | float_const  // length の最初にマッチしうるので注意
+    | int_const  // float の最初にマッチしうるので注意
+}
+
+unit_const = { "(" ~ ")" }
+bool_const = { "true" | "false" }
+
+int_decimal_const = _{ ASCII_NONZERO_DIGIT ~ ASCII_DIGIT* | "0" }
+
+int_const = @{ "0" ~ ("x" | "X") ~ ASCII_HEX_DIGIT+ | int_decimal_const }
+float_const = @{ ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT* | "." ~ ASCII_DIGIT+ }
+length_const = @{ length_digit ~ length_unit }
+length_digit = _{ (float_const | int_decimal_const) }
+length_unit = { ASCII_ALPHA_LOWER ~ (ASCII_ALPHANUMERIC | "-")* }
+
+string_const = @{
+    string_omit_space_identifier?
+    ~ PUSH("`"+) ~ string_interior ~ POP
+    ~ string_omit_space_identifier?
+}
+string_omit_space_identifier = {"#"}
+string_interior = { (!PEEK ~ ANY)* }
+
+// }}}
+
+// horizontal {{{
+
+horizontal_mode = _{
+    horizontal_list
+    | horizontal_bullet_list
+    | horizontal_single
+}
+horizontal_single = { horizontal_token* }
+horizontal_list = { "|" ~ (horizontal_single ~ "|")+ }
+horizontal_bullet_list = { ("*"+ ~ horizontal_single)+ }
+
+horizontal_token = @{
+    string_const
+    | horizontal_cmd
+    | horizontal_text_embedding
+    | "\\" ~ horizontal_special_char
+    | (!horizontal_special_char ~ ANY)+
+}
+horizontal_special_char = @{
+    "@" | "`" | "\\" | "{" | "}" | "%" | "|" | "*" | "$" | "#" | ";"
+}
+
+horizontal_cmd_name = @{ "\\" ~ (var_ptn | modvar) }
+horizontal_cmd = @{
+    horizontal_cmd_name
+    ~ (cmd_expr_arg | cmd_expr_option)*
+    ~ (";" | (cmd_text_arg)+)
+}
+cmd_expr_arg = !{
+    "(" ~ ")"
+    | "(" ~ expr ~ ")"
+}
+cmd_expr_option = { "?:" ~ cmd_expr_arg | "?*" }
+cmd_text_arg = !{
+    "<" ~ vertical_mode ~ ">"
+    | "{" ~ horizontal_mode ~ "}"
+}
+horizontal_text_embedding = ${ "#" ~ (var_ptn | modvar) ~ ";" }
+
+// }}}
+
+// vertical {{{
+
+vertical_mode = _{ (block_cmd | block_text_embedding)* }
+block_cmd_name = @{ "+" ~ (var_ptn | modvar) }
+block_cmd = {
+    block_cmd_name
+    ~ (cmd_expr_arg | cmd_expr_option)*
+    ~ (";" | (cmd_text_arg)+)
+}
+block_text_embedding = @{ "#" ~ (var_ptn | modvar) ~ ";" }
+
+// }}}

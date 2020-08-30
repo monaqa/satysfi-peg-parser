@@ -1,0 +1,9 @@
+let hoge =
+  let fuga = {aaa} in
+  read-block ctx '<
+    +p{
+      あああ\ctx(set-font-size (12pt +' 3pt)){いいい} #fuga;
+    }
+  >
+in
+hoge +++ block-nil
