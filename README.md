@@ -1,7 +1,7 @@
 # satysfi-peg-parser
 
-[SATySFi]() の実験的なパーサ．
-Rust製のPEGパーサジェネレータである [pest]() を利用しています．
+[SATySFi](https://github.com/gfngfn/SATySFi) の実験的なパーサ．
+Rust製のPEGパーサジェネレータである [pest](https://github.com/pest-parser/pest) を使用しています．
 SATySFi の文法の一部のみサポートしています．
 
 ## TODO
