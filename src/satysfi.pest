@@ -6,6 +6,7 @@ COMMENT = _{ "%" ~ (!("\r" | "\n") ~ ANY)* ~ ("\r" | "\n") }
 program = _{ SOI ~ header_stage? ~ header* ~ (preamble ~ "in")? ~ expr ~ EOI }
 
 // header {{{
+
 header_stage = @{
     "@stage:"
     ~ (" " | "\t")* ~ stage
@@ -18,6 +19,7 @@ header = @{
 }
 header_kind = !{ "require" | "import" }
 pkgname = ${ (!("\r" | "\n") ~ ANY)+ }
+
 // }}}
 
 // statement {{{
@@ -32,6 +34,7 @@ let_block_stmt = { "let-block" ~ (var)? ~ block_cmd_name ~ (arg)* ~ "=" ~ expr }
 // }}}
 
 // pattern {{{
+
 // let や match 式の左辺に来るもの．
 match_ptn = {
     pattern ~ "as" ~ var
@@ -56,6 +59,7 @@ pat_list = {
 pat_tuple = {
     "(" ~ match_ptn ~ ("," ~ match_ptn)+ ~ ")"
 }
+
 // }}}
 
 // expr {{{
