@@ -8,7 +8,7 @@ SATySFi の文法の一部のみサポートしています．
 
 - [ ] `let-mutable`/`let-rec`/`let-inline`/`let-math`
 - [ ] module, struct
-- [ ] ヘッダ
+- [x] ヘッダ
 - [ ] `if` 式
 - [ ] `match` 式
 - [ ] math mode

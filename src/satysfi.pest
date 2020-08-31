@@ -3,7 +3,22 @@
 WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
 COMMENT = _{ "%" ~ (!("\r" | "\n") ~ ANY)* ~ ("\r" | "\n") }
 
-program = _{ SOI ~ (preamble ~ "in")? ~ expr ~ EOI }
+program = _{ SOI ~ header_stage? ~ header* ~ (preamble ~ "in")? ~ expr ~ EOI }
+
+// header {{{
+header_stage = @{
+    "@stage:"
+    ~ (" " | "\t")* ~ stage
+    ~ (" " | "\t")* ~ ("\r" | "\n")
+}
+stage = !{ "0" | "1" | "persistent" }
+header = @{
+    "@" ~ header_kind ~ ":"
+    ~ (" " | "\t")* ~ pkgname ~ ("\r" | "\n")
+}
+header_kind = !{ "require" | "import" }
+pkgname = ${ (!("\r" | "\n") ~ ANY)+ }
+// }}}
 
 // statement {{{
 

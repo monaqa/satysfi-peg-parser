@@ -1,3 +1,6 @@
+@stage: 0
+@require: hoge
+
 let hoge =
   let fuga = {aaa} in
   read-block ctx '<

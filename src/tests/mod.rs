@@ -1,4 +1,5 @@
 mod expr;
+mod header;
 mod horizontal;
 mod literal;
 mod program;
