@@ -181,6 +181,14 @@ mod tests {
     }
 
     #[test]
+    fn record_member() {
+        assert_success(Rule::record_member, "hoge#fuga");
+        assert_success(Rule::record_member, "hoge # fuga");
+        assert_success(Rule::record_member, "(hoge fuga)#fuga");
+        assert_fail(Rule::record_member, "hoge#let");
+    }
+
+    #[test]
     fn expr_with_mod() {
         assert_success(Rule::expr_with_mod, "Mod.(1 + 2)");
         assert_fail(Rule::expr_with_mod, "Mod . (1 + 2)");

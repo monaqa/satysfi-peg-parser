@@ -42,6 +42,7 @@ expr = {
     bind_stmt ~ expr
     | dyadic_expr
     | application
+    | record_member
     | unary
 }
 
@@ -67,6 +68,8 @@ unary = {  // 1つの項として扱えるもの．
     | expr_with_mod
     | constant
 }
+
+record_member = { unary ~ "#" ~ var }
 
 tuple = {
     // () や (expr) は tuple 型にはならないので含めない
