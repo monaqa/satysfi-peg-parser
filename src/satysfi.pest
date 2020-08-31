@@ -33,18 +33,67 @@ let_block_stmt = { "let-block" ~ (var)? ~ block_cmd_name ~ (arg)* ~ "=" ~ expr }
 
 // pattern {{{
 // let や match 式の左辺に来るもの．
+match_ptn = {
+    pattern ~ "as" ~ var
+    | pattern ~ "::" ~ match_ptn
+    | pat_variant
+    | pattern
+}
 
+pattern = {
+    pat_list
+    | "(" ~ match_ptn ~ ")"
+    | pat_tuple
+    | "_"
+    | var
+    | constant
+}
+pat_variant = { variant_name ~ pattern?  }
+pat_list = {
+    "[" ~ "]"
+    | "[" ~ match_ptn ~ (";" ~ match_ptn)* ~ ";"? ~ "]"
+}
+pat_tuple = {
+    "(" ~ match_ptn ~ ("," ~ match_ptn)+ ~ ")"
+}
 // }}}
 
 // expr {{{
 
 expr = {
-    bind_stmt ~ expr
+    match_expr
+    | bind_stmt ~ expr
+    | ctrl_flow
     | dyadic_expr
+    | unary_operator_expr
+    | variant_constructor
     | application
     | record_member
     | unary
 }
+
+match_expr = {
+    "match" ~ expr ~ "with" ~ "|"?
+    ~ (match_arm ~ "|")* ~ match_arm
+}
+match_arm = {
+    match_ptn ~ "when" ~ (!match_expr ~ expr) ~ "->" ~ (!match_expr ~ expr)
+    | match_ptn ~ "->" ~ (!match_expr ~ expr)
+}
+
+ctrl_flow = _{
+    ctrl_while
+    | ctrl_if
+}
+ctrl_while = {
+    "while" ~ expr ~ "do" ~ expr
+}
+ctrl_if = {
+    "if" ~ expr
+    ~ "then" ~ expr
+    ~ "else" ~ expr
+}
+
 
 application = {  // 関数適用
     (var | modvar) ~ (
@@ -58,6 +107,7 @@ application = {  // 関数適用
 unary = {  // 1つの項として扱えるもの．
     block_text
     | horizontal_text
+    | math_text
     | record
     | list
     | tuple
@@ -67,6 +117,13 @@ unary = {  // 1つの項として扱えるもの．
     | modvar
     | expr_with_mod
     | constant
+}
+unary_operator_expr = {
+    ("-" | "not") ~ (application | record_member | unary)
+}
+
+variant_constructor = {
+    variant_name ~ unary?
 }
 
 record_member = { unary ~ "#" ~ var }
@@ -95,6 +152,7 @@ var = @{
 }
 var_ptn = @{ ASCII_ALPHA_LOWER ~ (ASCII_ALPHANUMERIC | "-")* }
 module_name = @{ ASCII_ALPHA_UPPER ~ (ASCII_ALPHANUMERIC | "-")* }
+variant_name = _{ module_name }
 modvar = @{ module_name ~ "." ~ var_ptn }
 expr_with_mod = { expr_with_mod_begin ~ expr ~ ")" }
     expr_with_mod_begin = @{ module_name ~ ".(" }
@@ -103,11 +161,18 @@ reserved_word = {
     // 文字数の多いものから順に書いていくこと
     "let-block"
     | "command"
+    | "match"
+    | "while"
     | "false"
     | "true"
+    | "then"
+    | "else"
     | "with"
+    | "when"
     | "let"
     | "in"
+    | "if"
+    | "do"
 }
 arg = { var }
 
@@ -116,9 +181,9 @@ horizontal_text = { "{" ~ horizontal_mode ~ "}" }
 math_text = {"${" ~ math_mode ~ "}"}
 
 dyadic_expr = {
-    ((var | modvar) ~ expr? | unary)
+    (unary_operator_expr | variant_constructor | application | unary)
     ~ bin_operator
-    ~ (dyadic_expr | (var | modvar) ~ expr? | unary)
+    ~ (dyadic_expr | unary_operator_expr | variant_constructor | application | unary)
 }
 
 bin_operator = @{

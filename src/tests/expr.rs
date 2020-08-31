@@ -83,6 +83,19 @@ mod tests {
     }
 
     #[test]
+    fn variant_name() {
+        assert_success(Rule::variant_name, "Mod");
+        assert_success(Rule::variant_name, "Mod2");
+        assert_success(Rule::variant_name, "Mod-2");
+        assert_success(Rule::variant_name, "ModVariable");
+        assert_success(Rule::variant_name, "ModVariable-OK");
+        assert_fail(Rule::variant_name, "mod");
+        assert_fail(Rule::variant_name, "mOD");
+        assert_fail(Rule::variant_name, "Mod Name");
+        assert_fail(Rule::variant_name, "Mod name");
+    }
+
+    #[test]
     fn modvar() {
         assert_success(Rule::modvar, "Mod.t");
         assert_success(Rule::modvar, "Mod.hoge-1");
@@ -181,6 +194,26 @@ mod tests {
     }
 
     #[test]
+    fn unary_operator_expr() {
+        assert_success(Rule::unary_operator_expr, "-2.0pt");
+        assert_success(Rule::unary_operator_expr, "-2");
+        assert_success(Rule::unary_operator_expr, "-2.5");
+        assert_success(Rule::unary_operator_expr, "not true");
+        assert_success(Rule::unary_operator_expr, "not (x > y)");
+        // assert_fail(Rule::unary_operator_expr, "notify");  // TODO: これを通す
+    }
+
+    #[test]
+    fn variant_constructor() {
+        assert_success(Rule::variant_constructor, "Variant");
+        assert_success(Rule::variant_constructor, "Variant 1");
+        assert_success(Rule::variant_constructor, "Variant(1)");
+        assert_success(Rule::variant_constructor, "Variant(1, x)");
+        assert_success(Rule::variant_constructor, "Variant (1, x)");
+        assert_fail(Rule::variant_constructor, "Variant 1 2");
+    }
+
+    #[test]
     fn record_member() {
         assert_success(Rule::record_member, "hoge#fuga");
         assert_success(Rule::record_member, "hoge # fuga");
@@ -196,6 +229,35 @@ mod tests {
         assert_fail(Rule::expr_with_mod, "Mod .(1 + 2)");
     }
 
+    #[test]
+    fn match_arm() {
+        assert_success(Rule::match_arm, "_ -> 0");
+        assert_success(Rule::match_arm, "x -> let y = 2 + 1 in x + y");
+        assert_success(Rule::match_arm, "x when x > 3 -> let y = 2 + 1 in x + y");
+    }
+
+    #[test]
+    fn match_expr() {
+        assert_success(Rule::match_expr, "match x with 1 -> 2");
+        assert_success(Rule::match_expr, "match x with
+            | 1 -> 2");
+        assert_success(Rule::match_expr, "match x with
+            | 1 -> 2
+            | 2 -> 4
+            | _ -> 0");
+        assert_fail(Rule::match_expr, "");
+    }
+
+    #[test]
+    fn ctrl_while() {
+        assert_success(Rule::ctrl_while, "while x > 2 do loop");
+    }
+
+    #[test]
+    fn ctrl_if() {
+        assert_success(Rule::ctrl_if, "if x > 2 then x else 2");
+        assert_success(Rule::ctrl_if, "if let y = 1 in x > y then x else 2");
+    }
 
     #[test]
     fn expr() {
@@ -219,8 +281,7 @@ mod tests {
                 }
               >
             in
-            hoge +++ block-nil
-            ";
+            hoge +++ block-nil";
 
         assert_success(Rule::expr, long_txt);
         // dbg!(SatysfiParser::parse(Rule::expr, long_txt).unwrap());

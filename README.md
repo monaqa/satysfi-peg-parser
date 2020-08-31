@@ -9,10 +9,10 @@ SATySFi の文法の一部のみサポートしています．
 - [ ] `let-mutable`/`let-rec`/`let-inline`/`let-math`
 - [ ] module, struct
 - [x] ヘッダ
-- [ ] `if` 式
-- [ ] `match` 式
+- [x] `if` 式
+- [x] `match` 式
 - [x] math mode
-- [ ] 代数的データ型，コンストラクタ
+- [x] 代数的データ型，コンストラクタ
 - [ ] 演算子の優先順位
 - [ ] `type` の宣言
 - [x] レコードのメンバアクセス

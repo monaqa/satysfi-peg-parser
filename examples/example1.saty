@@ -5,7 +5,7 @@ let hoge =
   let fuga = {aaa} in
   read-block ctx '<
     +p{
-      あああ\ctx(set-font-size (12pt +' 3pt)){いいい} #fuga;
+      あああ\ctx(set-font-size (-12pt +' 3pt)){いいい} #fuga;
       ${m\cdot\alpha \sqrt{t_h}}
     }
   >
