@@ -2,6 +2,7 @@ mod expr;
 mod header;
 mod horizontal;
 mod literal;
+mod math;
 mod program;
 mod statement;
 mod vertical;

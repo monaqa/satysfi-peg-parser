@@ -110,6 +110,7 @@ arg = { var }
 
 block_text = { "'<" ~ vertical_mode ~ ">" }
 horizontal_text = { "{" ~ horizontal_mode ~ "}" }
+math_text = {"${" ~ math_mode ~ "}"}
 
 dyadic_expr = {
     ((var | modvar) ~ expr? | unary)
@@ -180,6 +181,7 @@ horizontal_token = @{
     string_const
     | horizontal_cmd
     | horizontal_text_embedding
+    | "${" ~ math_mode ~ "}"
     | "\\" ~ horizontal_special_char
     | (!horizontal_special_char ~ ANY)+
 }
@@ -216,5 +218,56 @@ block_cmd = {
     ~ (";" | (cmd_text_arg)+)
 }
 block_text_embedding = @{ "#" ~ (var_ptn | modvar) ~ ";" }
+
+// }}}
+
+// math {{{
+math_mode = !{
+    math_list
+    | math_single
+}
+math_single = { math_token* }
+math_list = { "|" ~ (math_single ~ "|")+ }
+
+math_token = _{
+    math_unary ~ "^" ~ math_group ~ "_" ~ math_group
+    | math_unary ~ "_" ~ math_group ~ "^" ~ math_group
+    | math_unary ~ "^" ~ math_group
+    | math_unary ~ "_" ~ math_group
+    | math_unary
+}
+
+math_group = { "{" ~ math_single ~ "}" | math_unary }
+math_unary = @{
+    ASCII_ALPHANUMERIC
+    | "\\" ~ math_special_char
+    | math_symbol
+    | math_cmd
+}
+math_cmd = {
+    math_cmd_name
+    ~ (math_cmd_expr_arg | math_cmd_expr_option)*
+}
+math_special_char = {
+    " " | "!" | "\"" | "#" | "$" | "%" | "&" | "'"
+        | "(" | ")" | "*" | "+" | "," | "-" | "." | "/"
+        | "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7"
+        | "8" | "9" | ":" | ";" | "<" | "=" | ">" | "?"
+        | "@" | "[" | "\\" | "]" | "^" | "_"
+        | "`" | "{" | "|" | "}" | "~"
+}
+math_symbol = {
+    ("-" | "+" | "*" | "/" | ":" | "=" | "<"
+     | ">" | "~" | "'" | "." | "," | "?" | "`")+
+}
+math_cmd_name = _{ horizontal_cmd_name }
+math_cmd_expr_arg = !{
+    "{" ~ math_mode ~ "}"
+    | "!{" ~ horizontal_mode ~ "}"
+    | "!<" ~ vertical_mode ~ ">"
+    | "!(" ~ expr ~ ")"
+}
+math_cmd_expr_option = { "?:" ~ math_cmd_expr_arg }
+
 
 // }}}

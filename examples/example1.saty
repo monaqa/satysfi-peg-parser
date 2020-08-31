@@ -6,6 +6,7 @@ let hoge =
   read-block ctx '<
     +p{
       あああ\ctx(set-font-size (12pt +' 3pt)){いいい} #fuga;
+      ${m\cdot\alpha \sqrt{t_h}}
     }
   >
 in
