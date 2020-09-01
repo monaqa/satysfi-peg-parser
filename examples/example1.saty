@@ -1,6 +1,14 @@
 @stage: 0
 @require: hoge
 
+let-block ctx +some-cmd arg = block-nil
+
+let-inline ctx \ctx ctxf arg =
+  let ctx2 = ctxf ctx in
+  read-inline ctx2 arg
+
+in
+
 let hoge =
   let fuga = {aaa} in
   read-block ctx '<
@@ -8,6 +16,9 @@ let hoge =
       あああ\ctx(set-font-size (-12pt +' 3pt)){いいい} #fuga;
       ${m\cdot\alpha \sqrt{t_h}}
     }
+    +some-cmd[1pt; 2pt];
   >
 in
+
+
 hoge +++ block-nil

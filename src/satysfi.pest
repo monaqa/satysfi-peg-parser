@@ -142,8 +142,9 @@ unary = {  // 1つの項として扱えるもの．
     | constant
 }
 unary_operator_expr = {
-    ("-" | "not") ~ (application | record_member | unary)
+    unary_operator ~ (application | record_member | unary)
 }
+unary_operator = { "-" | "not" }
 
 variant_constructor = {
     variant_name ~ unary?
@@ -270,7 +271,7 @@ horizontal_single = { horizontal_token* }
 horizontal_list = { "|" ~ (horizontal_single ~ "|")+ }
 horizontal_bullet_list = { ("*"+ ~ horizontal_single)+ }
 
-horizontal_token = @{
+horizontal_token = ${
     string_const
     | inline_cmd
     | horizontal_text_embedding
@@ -283,7 +284,7 @@ horizontal_special_char = @{
 }
 
 inline_cmd_name = @{ "\\" ~ (var_ptn | modvar) }
-inline_cmd = @{
+inline_cmd = {
     inline_cmd_name
     ~ (cmd_expr_arg | cmd_expr_option)*
     ~ (";" | (cmd_text_arg)+)
@@ -334,7 +335,7 @@ math_token = _{
 }
 
 math_group = { "{" ~ math_single ~ "}" | math_unary }
-math_unary = @{
+math_unary = ${
     ASCII_ALPHANUMERIC
     | "\\" ~ math_special_char
     | math_symbol
