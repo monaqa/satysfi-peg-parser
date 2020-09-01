@@ -270,6 +270,8 @@ horizontal_cmd = @{
 cmd_expr_arg = !{
     "(" ~ ")"
     | "(" ~ expr ~ ")"
+    | list
+    | record
 }
 cmd_expr_option = { "?:" ~ cmd_expr_arg | "?*" }
 cmd_text_arg = !{
@@ -338,6 +340,17 @@ math_cmd_expr_arg = !{
     | "!{" ~ horizontal_mode ~ "}"
     | "!<" ~ vertical_mode ~ ">"
     | "!(" ~ expr ~ ")"
+    | math_cmd_list_arg
+    | math_cmd_record_arg
+}
+math_cmd_list_arg = {
+    "![" ~ "]"
+    | "![" ~ expr ~ (";" ~ expr)* ~ ";"? ~ "]"
+}
+math_cmd_record_arg = {
+    "!(" ~ "|" ~ "|" ~ ")"
+    | "!(" ~ "|" ~ unary ~ "with" ~ record_inner ~ "|" ~ ")"
+    | "!(" ~ "|" ~ record_inner ~ "|" ~ ")"
 }
 math_cmd_expr_option = { "?:" ~ math_cmd_expr_arg }
 

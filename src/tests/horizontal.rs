@@ -11,6 +11,9 @@ mod tests {
         assert_success(Rule::cmd_expr_arg, "(hoge)");
         assert_success(Rule::cmd_expr_arg, "('< +p(hoge); >)");
         assert_success(Rule::cmd_expr_arg, "(set-font-size 12pt)");
+        assert_success(Rule::cmd_expr_arg, "[]");
+        assert_success(Rule::cmd_expr_arg, "[1pt; 2pt]");
+        assert_success(Rule::cmd_expr_arg, "(| height = 1pt; width = 2pt; |)");
         assert_fail(Rule::cmd_expr_arg, "{}");
         assert_fail(Rule::cmd_expr_arg, "'<>");
     }
@@ -19,6 +22,9 @@ mod tests {
     fn cmd_expr_option() {
         assert_success(Rule::cmd_expr_option, "?:()");
         assert_success(Rule::cmd_expr_option, "?*");
+        assert_success(Rule::cmd_expr_option, "?:[]");
+        assert_success(Rule::cmd_expr_option, "?:[1; 2]");
+        assert_success(Rule::cmd_expr_option, "?:(| aaa = 1; bbb = 2 |)");
         assert_fail(Rule::cmd_expr_option, "?:*");
         assert_fail(Rule::cmd_expr_option, "?");
     }
@@ -72,6 +78,8 @@ mod tests {
         assert_success(Rule::horizontal_cmd, r"\hoge<>");
         assert_success(Rule::horizontal_cmd, r"\hoge<>{}");
         assert_success(Rule::horizontal_cmd, r"\ctx(set-font-size 12pt){fuga}");
+        assert_success(Rule::horizontal_cmd, r"\easytable?:[t; b][l; lw 90pt]{| a | b |}");
+        assert_success(Rule::horizontal_cmd, r"\hoge(| x = 1; y = 2; |);");
 
         assert_fail(Rule::horizontal_cmd, r"\textbf");
         assert_fail(Rule::horizontal_cmd, r"\textbf(hoge)");

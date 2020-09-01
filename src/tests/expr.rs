@@ -129,6 +129,14 @@ mod tests {
 
     #[test]
     fn list() {
+        assert_success(Rule::list, "[]");
+        assert_success(Rule::list, "[ ]");
+        assert_success(Rule::list, "[1]");
+        assert_success(Rule::list, "[ 1 ]");
+        assert_success(Rule::list, "[1;]");
+        assert_success(Rule::list, "[1; 2]");
+        assert_success(Rule::list, "[1; 2;]");
+        assert_success(Rule::list, "[1; 2; 3]");
         assert_success(Rule::list, "[hoge fuga]");
         assert_success(Rule::list, "[hoge fuga;]");
         assert_success(Rule::list, "[hoge; piyo]");
@@ -155,9 +163,14 @@ mod tests {
     #[test]
     fn record() {
         assert_success(Rule::record, "(||)");
-        assert_success(Rule::record, "(|hoge = 1pt; fuga = 2pt|)");
-        assert_success(Rule::record, "(|rec with hoge = 1pt|)");
-        assert_success(Rule::record, "(|rec with hoge = 1pt; fuga = 2pt|)");
+        assert_success(Rule::record, "(| |)");
+        assert_success(Rule::record, "(| a = 1 |)");
+        assert_success(Rule::record, "(| a = 1; b = 2pt |)");
+        assert_success(Rule::record, "(| a = 1; b = 2pt; |)");
+        assert_success(Rule::record, "(| a = 1; b = 2pt; c = 3pt |)");
+        assert_success(Rule::record, "(|a=1;b=2pt;c=3pt|)");
+        assert_success(Rule::record, "(| rec with a = 1 |)");
+        assert_success(Rule::record, "(| rec with a = 1; b = 2pt; c = 3pt |)");
     }
 
     #[test]

@@ -20,6 +20,35 @@ mod tests {
     }
 
     #[test]
+    fn math_cmd_list_arg() {
+        assert_success(Rule::math_cmd_list_arg, "![]");
+        assert_success(Rule::math_cmd_list_arg, "![ ]");
+        assert_success(Rule::math_cmd_list_arg, "![1]");
+        assert_success(Rule::math_cmd_list_arg, "![ 1 ]");
+        assert_success(Rule::math_cmd_list_arg, "![1;]");
+        assert_success(Rule::math_cmd_list_arg, "![1; 2]");
+        assert_success(Rule::math_cmd_list_arg, "![1; 2;]");
+        assert_success(Rule::math_cmd_list_arg, "![1; 2; 3]");
+        assert_fail(Rule::math_cmd_list_arg, "[]");
+        assert_fail(Rule::math_cmd_list_arg, "! []");
+    }
+
+    #[test]
+    fn math_cmd_record_arg() {
+        assert_success(Rule::math_cmd_record_arg, "!(||)");
+        assert_success(Rule::math_cmd_record_arg, "!(| |)");
+        assert_success(Rule::math_cmd_record_arg, "!(| a = 1 |)");
+        assert_success(Rule::math_cmd_record_arg, "!(| a = 1; b = 2pt |)");
+        assert_success(Rule::math_cmd_record_arg, "!(| a = 1; b = 2pt; |)");
+        assert_success(Rule::math_cmd_record_arg, "!(| a = 1; b = 2pt; c = 3pt |)");
+        assert_success(Rule::math_cmd_record_arg, "!(|a=1;b=2pt;c=3pt|)");
+        assert_success(Rule::math_cmd_record_arg, "!(| rec with a = 1 |)");
+        assert_success(Rule::math_cmd_record_arg, "!(| rec with a = 1; b = 2pt; c = 3pt |)");
+        assert_fail(Rule::math_cmd_record_arg, "(||)");
+        assert_fail(Rule::math_cmd_record_arg, "! (||)");
+    }
+
+    #[test]
     fn math_cmd_expr_arg() {
         assert_success(Rule::math_cmd_expr_arg, "{a}");
         assert_success(Rule::math_cmd_expr_arg, r"{\alpha}");
