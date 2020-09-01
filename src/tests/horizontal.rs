@@ -55,36 +55,36 @@ mod tests {
     }
 
     #[test]
-    fn horizontal_cmd_name() {
-        assert_success(Rule::horizontal_cmd_name, r"\t");
-        assert_success(Rule::horizontal_cmd_name, r"\textbf");
-        assert_success(Rule::horizontal_cmd_name, r"\Mod.textbf");
-        assert_success(Rule::horizontal_cmd_name, r"\let");
-        assert_success(Rule::horizontal_cmd_name, r"\in");
-        assert_success(Rule::horizontal_cmd_name, r"\t-1");
-        assert_fail(Rule::horizontal_cmd_name, r"\Textbf");
-        assert_fail(Rule::horizontal_cmd_name, r"\1");
-        assert_fail(Rule::horizontal_cmd_name, r"\-textbf");
-        assert_fail(Rule::horizontal_cmd_name, r"\mod.textbf");
+    fn inline_cmd_name() {
+        assert_success(Rule::inline_cmd_name, r"\t");
+        assert_success(Rule::inline_cmd_name, r"\textbf");
+        assert_success(Rule::inline_cmd_name, r"\Mod.textbf");
+        assert_success(Rule::inline_cmd_name, r"\let");
+        assert_success(Rule::inline_cmd_name, r"\in");
+        assert_success(Rule::inline_cmd_name, r"\t-1");
+        assert_fail(Rule::inline_cmd_name, r"\Textbf");
+        assert_fail(Rule::inline_cmd_name, r"\1");
+        assert_fail(Rule::inline_cmd_name, r"\-textbf");
+        assert_fail(Rule::inline_cmd_name, r"\mod.textbf");
     }
 
     #[test]
-    fn horizontal_cmd() {
-        assert_success(Rule::horizontal_cmd, r"\textbf;");
-        assert_success(Rule::horizontal_cmd, r"\textbf(hoge);");
-        assert_success(Rule::horizontal_cmd, r"\textbf(hoge)(fuga);");
-        assert_success(Rule::horizontal_cmd, r"\textbf?*;");
-        assert_success(Rule::horizontal_cmd, r"\textbf{}");
-        assert_success(Rule::horizontal_cmd, r"\hoge<>");
-        assert_success(Rule::horizontal_cmd, r"\hoge<>{}");
-        assert_success(Rule::horizontal_cmd, r"\ctx(set-font-size 12pt){fuga}");
-        assert_success(Rule::horizontal_cmd, r"\easytable?:[t; b][l; lw 90pt]{| a | b |}");
-        assert_success(Rule::horizontal_cmd, r"\hoge(| x = 1; y = 2; |);");
+    fn inline_cmd() {
+        assert_success(Rule::inline_cmd, r"\textbf;");
+        assert_success(Rule::inline_cmd, r"\textbf(hoge);");
+        assert_success(Rule::inline_cmd, r"\textbf(hoge)(fuga);");
+        assert_success(Rule::inline_cmd, r"\textbf?*;");
+        assert_success(Rule::inline_cmd, r"\textbf{}");
+        assert_success(Rule::inline_cmd, r"\hoge<>");
+        assert_success(Rule::inline_cmd, r"\hoge<>{}");
+        assert_success(Rule::inline_cmd, r"\ctx(set-font-size 12pt){fuga}");
+        assert_success(Rule::inline_cmd, r"\easytable?:[t; b][l; lw 90pt]{| a | b |}");
+        assert_success(Rule::inline_cmd, r"\hoge(| x = 1; y = 2; |);");
 
-        assert_fail(Rule::horizontal_cmd, r"\textbf");
-        assert_fail(Rule::horizontal_cmd, r"\textbf(hoge)");
-        assert_fail(Rule::horizontal_cmd, r"\hoge{};");
-        assert_fail(Rule::horizontal_cmd, r"\hoge{}();");
+        assert_fail(Rule::inline_cmd, r"\textbf");
+        assert_fail(Rule::inline_cmd, r"\textbf(hoge)");
+        assert_fail(Rule::inline_cmd, r"\hoge{};");
+        assert_fail(Rule::inline_cmd, r"\hoge{}();");
     }
 
     #[test]

@@ -5,6 +5,26 @@ mod tests {
     use super::super::common::{assert_success, assert_fail};
 
     #[test]
+    fn arg() {
+        assert_success(Rule::arg, "42");
+        assert_success(Rule::arg, "()");
+        assert_success(Rule::arg, "_");
+        assert_success(Rule::arg, "hoge");
+        assert_success(Rule::arg, "(x, y)");
+        assert_success(Rule::arg, "?:hoge");
+        assert_success(Rule::arg, "?: hoge");
+        assert_fail(Rule::arg, "if");
+    }
+
+    #[test]
+    fn stmt_argument() {
+        assert_success(Rule::stmt_argument, "hoge");
+        assert_success(Rule::stmt_argument, "| hoge");
+        assert_success(Rule::stmt_argument, "hoge 42");
+        assert_fail(Rule::stmt_argument, "| hoge | fuga");
+    }
+
+    #[test]
     fn let_stmt() {
         assert_success(Rule::let_stmt, "let hoge = 1");
         assert_success(Rule::let_stmt, "let hoge = fuga");
@@ -16,9 +36,29 @@ mod tests {
     }
 
     #[test]
+    fn let_inline_stmt() {
+        assert_success(Rule::let_inline_stmt, r"let-inline \ctx={}");
+        assert_success(Rule::let_inline_stmt, r"let-inline \ctx = {}");
+        assert_success(Rule::let_inline_stmt, r"let-inline \ctx arg = {}");
+        assert_success(Rule::let_inline_stmt, r"let-inline \ctx arg1 arg2 = {}");
+        assert_success(Rule::let_inline_stmt, r"let-inline ctx \ctx = inline-fil");
+        assert_success(Rule::let_inline_stmt, r"let-inline ctx \ctx arg = inline-fil");
+        assert_success(Rule::let_inline_stmt, r"let-inline ctx \ctx arg1 arg2 = inline-fil");
+        assert_success(Rule::let_inline_stmt, r"let-inline ctx \ctx ?:arg1 arg2 = inline-fil");
+        assert_fail(Rule::let_inline_stmt, r"let-inline \ctx ?:arg1 arg2 = {}");
+    }
+
+    #[test]
     fn let_block_stmt() {
-        assert_success(Rule::let_block_stmt, "let-block ctx +a = fuga");
-        assert_success(Rule::let_block_stmt, "let-block ctx +p x = block-nil");
+        assert_success(Rule::let_block_stmt, "let-block +p='<>");
+        assert_success(Rule::let_block_stmt, "let-block +p = '<>");
+        assert_success(Rule::let_block_stmt, "let-block +p arg = '<>");
+        assert_success(Rule::let_block_stmt, "let-block +p arg1 arg2 = '<>");
+        assert_success(Rule::let_block_stmt, "let-block ctx +p = block-nil");
+        assert_success(Rule::let_block_stmt, "let-block ctx +p arg = block-nil");
+        assert_success(Rule::let_block_stmt, "let-block ctx +p arg1 arg2 = block-nil");
+        assert_success(Rule::let_block_stmt, "let-block ctx +p ?:arg1 arg2 = block-nil");
+        assert_fail(Rule::let_block_stmt, "let-block +p ?:arg1 arg2 = '<>");
     }
 
     #[test]

@@ -26,10 +26,29 @@ pkgname = ${ (!("\r" | "\n") ~ ANY)+ }
 
 preamble = _{ (
     let_stmt
+    | let_inline_stmt
     | let_block_stmt
 )+ }
-let_stmt = { "let" ~ var ~ (arg)* ~ "=" ~ expr }
-let_block_stmt = { "let-block" ~ (var)? ~ block_cmd_name ~ (arg)* ~ "=" ~ expr }
+let_stmt = { "let" ~ pattern ~ stmt_argument? ~ "=" ~ expr }
+let_inline_stmt = {
+    "let-inline" ~
+    ((inline_cmd_name ~ (pattern)*)
+     | (var ~ inline_cmd_name ~ (arg)*))
+    ~ "=" ~ expr
+}
+let_block_stmt = {
+    "let-block" ~
+    ((block_cmd_name ~ (pattern)*)
+     | (var ~ block_cmd_name ~ (arg)*))
+    ~ "=" ~ expr
+}
+
+stmt_argument = {
+    // ":" ~ type_func
+    "|"? ~ (arg)+
+}
+
+arg = { pattern | "?:" ~ var_ptn }
 
 // }}}
 
@@ -105,7 +124,7 @@ application = {  // 関数適用
             | "?*"
             | unary
     )+
-    | "command" ~ horizontal_cmd_name
+    | "command" ~ inline_cmd_name
 }
 
 unary = {  // 1つの項として扱えるもの．
@@ -163,7 +182,8 @@ expr_with_mod = { expr_with_mod_begin ~ expr ~ ")" }
 
 reserved_word = {
     // 文字数の多いものから順に書いていくこと
-    "let-block"
+    "let-inline"
+    | "let-block"
     | "command"
     | "match"
     | "while"
@@ -174,11 +194,12 @@ reserved_word = {
     | "with"
     | "when"
     | "let"
+    | "mod"
+    | "not"
     | "in"
     | "if"
     | "do"
 }
-arg = { var }
 
 block_text = { "'<" ~ vertical_mode ~ ">" }
 horizontal_text = { "{" ~ horizontal_mode ~ "}" }
@@ -251,7 +272,7 @@ horizontal_bullet_list = { ("*"+ ~ horizontal_single)+ }
 
 horizontal_token = @{
     string_const
-    | horizontal_cmd
+    | inline_cmd
     | horizontal_text_embedding
     | "${" ~ math_mode ~ "}"
     | "\\" ~ horizontal_special_char
@@ -261,9 +282,9 @@ horizontal_special_char = @{
     "@" | "`" | "\\" | "{" | "}" | "%" | "|" | "*" | "$" | "#" | ";"
 }
 
-horizontal_cmd_name = @{ "\\" ~ (var_ptn | modvar) }
-horizontal_cmd = @{
-    horizontal_cmd_name
+inline_cmd_name = @{ "\\" ~ (var_ptn | modvar) }
+inline_cmd = @{
+    inline_cmd_name
     ~ (cmd_expr_arg | cmd_expr_option)*
     ~ (";" | (cmd_text_arg)+)
 }
@@ -296,6 +317,7 @@ block_text_embedding = @{ "#" ~ (var_ptn | modvar) ~ ";" }
 // }}}
 
 // math {{{
+
 math_mode = !{
     math_list
     | math_single
@@ -334,7 +356,7 @@ math_symbol = {
     ("-" | "+" | "*" | "/" | ":" | "=" | "<"
      | ">" | "~" | "'" | "." | "," | "?" | "`")+
 }
-math_cmd_name = _{ horizontal_cmd_name }
+math_cmd_name = _{ inline_cmd_name }
 math_cmd_expr_arg = !{
     "{" ~ math_mode ~ "}"
     | "!{" ~ horizontal_mode ~ "}"
@@ -353,6 +375,5 @@ math_cmd_record_arg = {
     | "!(" ~ "|" ~ record_inner ~ "|" ~ ")"
 }
 math_cmd_expr_option = { "?:" ~ math_cmd_expr_arg }
-
 
 // }}}
