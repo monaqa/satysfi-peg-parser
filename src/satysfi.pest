@@ -28,6 +28,7 @@ preamble = _{ (
     let_stmt
     | let_inline_stmt
     | let_block_stmt
+    | module_stmt
 )+ }
 let_stmt = { "let" ~ pattern ~ stmt_argument? ~ "=" ~ expr }
 let_inline_stmt = {
@@ -44,11 +45,82 @@ let_block_stmt = {
 }
 
 stmt_argument = {
-    // ":" ~ type_func
+    // ":" ~ type_expr
     "|"? ~ (arg)+
 }
 
 arg = { pattern | "?:" ~ var_ptn }
+
+// }}}
+
+// module {{{
+
+module_stmt = {
+    "module" ~ module_name ~ (":" ~ sig_stmt)? ~ "=" ~ struct_stmt
+}
+sig_stmt = { "sig" ~ sig_inner ~ "end" }
+struct_stmt = { "struct" ~ struct_inner ~ "end" }
+sig_inner = {
+    sig_type_stmt
+    | sig_val_stmt
+    | sig_direct_stmt
+}
+sig_type_stmt = { "type" ~ type_param* ~ var ~ constraint* }
+sig_val_stmt = {
+    "val" ~
+    (var | "(" ~ bin_operator ~ ")" | inline_cmd_name | block_cmd_name)
+    ~ ":" ~ type_expr ~ constraint*
+}
+sig_direct_stmt = {
+    "direct" ~
+    ( inline_cmd_name | block_cmd_name)
+    ~ ":" ~ type_expr ~ constraint*
+}
+struct_inner = _{ preamble }
+
+// }}}
+
+// type {{{
+
+type_expr = {
+    (type_optional_name ~ "?->")* ~ (type_prod ~ "->")* ~ type_prod
+}
+type_optional_name = _{type_prod}
+type_prod = {
+    type_unary ~ ("*" ~ type_unary)*
+}
+type_unary = {
+      type_list ~ "inline-cmd"
+    | type_list ~ "block-cmd"
+    | type_list ~ "math-cmd"
+    | "(" ~ type_expr ~ ")"
+    | type_record
+    | type_param
+    | type_application
+    | type_name
+}
+type_application = {
+    ( "(" ~ type_expr ~ ")"
+      | type_param
+      | type_name)
+    ~ type_application
+}
+type_name = _{ var | modvar }
+type_list = {
+    "[" ~ "]"
+    | "[" ~ type_list_unit ~ (";" ~ type_list_unit)* ~ ";"? ~ "]"
+}
+type_list_unit = _{ type_prod ~ "?" | type_expr }
+type_record = _{
+    "(" ~ "|" ~ "|" ~ ")"
+    | "(" ~ "|" ~ type_record_inner ~ "|" ~ ")"
+}
+type_record_inner = _{ type_record_unit ~ (";" ~ type_record_unit)* ~ ";"? }
+type_record_unit = { var ~ ":" ~ type_expr }
+
+type_param = @{ "'" ~ var_ptn }
+
+constraint = { "constraint" ~ type_param ~ "::" ~ type_record }
 
 // }}}
 
