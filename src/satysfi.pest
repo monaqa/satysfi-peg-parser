@@ -58,12 +58,12 @@ arg = { pattern | "?:" ~ var_ptn }
 module_stmt = {
     "module" ~ module_name ~ (":" ~ sig_stmt)? ~ "=" ~ struct_stmt
 }
-sig_stmt = { "sig" ~ sig_inner ~ "end" }
-struct_stmt = { "struct" ~ struct_inner ~ "end" }
+sig_stmt = { "sig" ~ sig_inner? ~ "end" }
+struct_stmt = { "struct" ~ struct_inner? ~ "end" }
 sig_inner = {
-    sig_type_stmt
-    | sig_val_stmt
-    | sig_direct_stmt
+    (sig_type_stmt
+     | sig_val_stmt
+     | sig_direct_stmt)+
 }
 sig_type_stmt = { "type" ~ type_param* ~ var ~ constraint* }
 sig_val_stmt = {
@@ -80,7 +80,7 @@ struct_inner = _{ preamble }
 
 // }}}
 
-// type {{{
+// types {{{
 
 type_expr = {
     (type_optional_name ~ "?->")* ~ (type_prod ~ "->")* ~ type_prod
@@ -95,15 +95,15 @@ type_unary = {
     | type_list ~ "math-cmd"
     | "(" ~ type_expr ~ ")"
     | type_record
-    | type_param
     | type_application
+    | type_param
     | type_name
 }
-type_application = {
-    ( "(" ~ type_expr ~ ")"
-      | type_param
-      | type_name)
-    ~ type_application
+type_application = { type_application_unit ~ type_application_unit+ }
+type_application_unit = {
+    "(" ~ type_expr ~ ")"
+    | type_param
+    | type_name
 }
 type_name = _{ var | modvar }
 type_list = {
@@ -111,9 +111,9 @@ type_list = {
     | "[" ~ type_list_unit ~ (";" ~ type_list_unit)* ~ ";"? ~ "]"
 }
 type_list_unit = _{ type_prod ~ "?" | type_expr }
-type_record = _{
-    "(" ~ "|" ~ "|" ~ ")"
-    | "(" ~ "|" ~ type_record_inner ~ "|" ~ ")"
+type_record = {
+    ("(" ~ "|" ~ "|" ~ ")")
+    | ("(" ~ "|" ~ type_record_inner ~ "|" ~ ")")
 }
 type_record_inner = _{ type_record_unit ~ (";" ~ type_record_unit)* ~ ";"? }
 type_record_unit = { var ~ ":" ~ type_expr }

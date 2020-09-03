@@ -3,9 +3,11 @@ mod header;
 mod horizontal;
 mod literal;
 mod math;
+mod module;
 mod pattern;
 mod program;
 mod statement;
+mod types;
 mod vertical;
 
 #[cfg(test)]
