@@ -198,7 +198,7 @@ application = {  // 関数適用
     (var | modvar) ~ (
             "?:" ~ unary
             | "?*"
-            | unary
+            | (unary | variant_name)
     )+
     | "command" ~ inline_cmd_name
 }
@@ -216,7 +216,6 @@ unary = {  // 1つの項として扱えるもの．
     | expr_with_mod
     | modvar
     | var
-    | variant_constructor
 }
 unary_operator_expr = {
     unary_operator ~ (application | record_member | unary)
@@ -253,7 +252,7 @@ var = @{
 }
 var_ptn = @{ ASCII_ALPHA_LOWER ~ (ASCII_ALPHANUMERIC | "-")* }
 module_name = @{ ASCII_ALPHA_UPPER ~ (ASCII_ALPHANUMERIC | "-")* }
-variant_name = _{ module_name }
+variant_name = @{ ASCII_ALPHA_UPPER ~ (ASCII_ALPHANUMERIC | "-")* }
 modvar = @{ module_name ~ "." ~ var_ptn }
 expr_with_mod = { expr_with_mod_begin ~ expr ~ ")" }
     expr_with_mod_begin = @{ module_name ~ ".(" }
