@@ -25,14 +25,17 @@ mod tests {
     }
 
     #[test]
-    fn let_stmt() {
-        assert_success(Rule::let_stmt, "let hoge = 1");
-        assert_success(Rule::let_stmt, "let hoge = fuga");
-        assert_fail(Rule::let_stmt, "let let = fuga");
-        assert_fail(Rule::let_stmt, "let hoge = let");
+    fn let_mutable_stmt() {
+        assert_success(Rule::let_mutable_stmt, "let-mutable x <- 1");
+        assert_success(Rule::let_mutable_stmt, "let-mutable x <- embed-string `hoge`");
+        assert_fail(Rule::let_mutable_stmt, "let-mutable x = 1");
+        assert_fail(Rule::let_mutable_stmt, "let-mutable (x, y) <- (1, 2)");
+    }
 
-        assert_success(Rule::let_stmt, "let hoge = let fuga = 2 in 1 + fuga");
-        assert_success(Rule::let_stmt, "let hoge = let fuga = 2 in let piyo = 3 in fuga + piyo");
+    #[test]
+    fn let_math_stmt() {
+        assert_success(Rule::let_math_stmt, r"let-math \alpha = math-char MathOrd `α`");
+        assert_fail(Rule::let_math_stmt, r"let-math ctx \alpha = math-char MathOrd `α`");
     }
 
     #[test]
@@ -59,6 +62,17 @@ mod tests {
         assert_success(Rule::let_block_stmt, "let-block ctx +p arg1 arg2 = block-nil");
         assert_success(Rule::let_block_stmt, "let-block ctx +p ?:arg1 arg2 = block-nil");
         assert_fail(Rule::let_block_stmt, "let-block +p ?:arg1 arg2 = '<>");
+    }
+
+    #[test]
+    fn let_stmt() {
+        assert_success(Rule::let_stmt, "let hoge = 1");
+        assert_success(Rule::let_stmt, "let hoge = fuga");
+        assert_fail(Rule::let_stmt, "let let = fuga");
+        assert_fail(Rule::let_stmt, "let hoge = let");
+
+        assert_success(Rule::let_stmt, "let hoge = let fuga = 2 in 1 + fuga");
+        assert_success(Rule::let_stmt, "let hoge = let fuga = 2 in let piyo = 3 in fuga + piyo");
     }
 
     #[test]

@@ -28,6 +28,8 @@ preamble = _{ (
     let_stmt
     | let_inline_stmt
     | let_block_stmt
+    | let_math_stmt
+    | let_mutable_stmt
     | module_stmt
 )+ }
 let_stmt = { "let" ~ pattern ~ stmt_argument? ~ "=" ~ expr }
@@ -43,6 +45,8 @@ let_block_stmt = {
      | (var ~ block_cmd_name ~ (arg)*))
     ~ "=" ~ expr
 }
+let_math_stmt = { "let-math" ~ math_cmd_name ~ (pattern)* ~ "=" ~ expr }
+let_mutable_stmt = { "let-mutable" ~ var ~ "<-" ~ expr }
 
 stmt_argument = {
     // ":" ~ type_expr
@@ -208,10 +212,11 @@ unary = {  // 1つの項として扱えるもの．
     | tuple
     | "(" ~ bin_operator ~ ")"
     | "(" ~ expr ~ ")"
-    | var
-    | modvar
-    | expr_with_mod
     | constant
+    | expr_with_mod
+    | modvar
+    | var
+    | variant_constructor
 }
 unary_operator_expr = {
     unary_operator ~ (application | record_member | unary)

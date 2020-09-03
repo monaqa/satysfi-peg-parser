@@ -177,6 +177,7 @@ mod tests {
     fn application() {
         assert_success(Rule::application, "set-font-size 12pt");
         assert_success(Rule::application, "read-inline ctx it");
+        assert_success(Rule::application, "math-char MathOrd `α`");
         assert_success(Rule::application, "hoge ?:fuga");
         assert_success(Rule::application, "hoge ?*");
         assert_success(Rule::application, "hoge ?* ?:fuga");
@@ -280,6 +281,7 @@ mod tests {
         assert_success(Rule::expr, "inline-nil");
 
         assert_success(Rule::expr, "let hoge = 1pt in hoge +' fuga");
+        assert_success(Rule::expr, "math-char MathOrd `α`");
 
         assert_fail(Rule::expr, "");
         assert_fail(Rule::expr, "let hoge = 1pt in");
