@@ -9,4 +9,6 @@ extern crate pest_derive;
 #[grammar = "satysfi.pest"]
 pub struct SatysfiParser;
 
+pub mod grammar;
+
 pub mod tests;

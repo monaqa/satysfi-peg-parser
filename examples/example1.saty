@@ -1,5 +1,6 @@
-@stage: 0
-@require: hoge
+@stage: 1
+@require: stdja
+% comment
 
 let-block ctx +some-cmd arg = block-nil
 
@@ -11,7 +12,7 @@ let-math \alpha = math-char MathOrd `α`
 
 in
 
-let hoge =
+let hoge ctx =
   let fuga = {aaa} in
   read-block ctx '<
     +p{
@@ -22,4 +23,4 @@ let hoge =
   >
 in
 
-hoge +++ block-nil
+block-nil

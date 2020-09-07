@@ -1,7 +1,8 @@
 // vim: fdm=marker
 
 WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
-COMMENT = _{ "%" ~ (!("\r" | "\n") ~ ANY)* ~ ("\r" | "\n") }
+COMMENT = _{ "%" ~ comment_inner ~ ("\r" | "\n") }
+comment_inner = ${ (!("\r" | "\n") ~ ANY)* }
 
 program = _{ SOI ~ header_stage? ~ header* ~ (preamble ~ "in")? ~ expr ~ EOI }
 
@@ -144,7 +145,7 @@ pattern = {
     | pat_tuple
     | "_"
     | var
-    | constant
+    | literal
 }
 pat_variant = { variant_name ~ pattern?  }
 pat_list = {
@@ -193,7 +194,6 @@ ctrl_if = {
     ~ "else" ~ expr
 }
 
-
 application = {  // 関数適用
     (var | modvar) ~ (
             "?:" ~ unary
@@ -212,7 +212,7 @@ unary = {  // 1つの項として扱えるもの．
     | tuple
     | "(" ~ bin_operator ~ ")"
     | "(" ~ expr ~ ")"
-    | constant
+    | literal
     | expr_with_mod
     | modvar
     | var
@@ -326,24 +326,24 @@ let_in_stmt = { let_stmt ~ "in" }
 
 // }}}
 
-// constants {{{
+// literal {{{
 
-constant = _{
+literal = {
     unit_const
     | bool_const
     | string_const
-    | length_const
     | float_const  // length の最初にマッチしうるので注意
     | int_const  // float の最初にマッチしうるので注意
+    | length_const  // 0x.... にマッチしうるので注意
 }
 
 unit_const = { "(" ~ ")" }
 bool_const = { "true" | "false" }
 
-int_decimal_const = _{ ASCII_NONZERO_DIGIT ~ ASCII_DIGIT* | "0" }
-
-int_const = @{ "0" ~ ("x" | "X") ~ ASCII_HEX_DIGIT+ | int_decimal_const }
-float_const = @{ ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT* | "." ~ ASCII_DIGIT+ }
+int_decimal_const = { ASCII_NONZERO_DIGIT ~ ASCII_DIGIT* | "0" }
+int_const = ${ (int_hex_const | int_decimal_const) ~ !length_unit }
+    int_hex_const = { "0" ~ ("x" | "X") ~ ASCII_HEX_DIGIT+ }
+float_const = @{ (ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT* | "." ~ ASCII_DIGIT+) ~ !length_unit }
 length_const = @{ length_digit ~ length_unit }
 length_digit = _{ (float_const | int_decimal_const) }
 length_unit = { ASCII_ALPHA_LOWER ~ (ASCII_ALPHANUMERIC | "-")* }

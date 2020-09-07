@@ -64,13 +64,13 @@ mod tests {
     }
 
     #[test]
-    fn constant() {
-        assert_success(Rule::constant, "(  )");
-        assert_success(Rule::constant, "true");
-        assert_success(Rule::constant, "#` hoge`");
-        assert_success(Rule::constant, "2.3pt");
-        assert_success(Rule::constant, "2.3");
-        assert_success(Rule::constant, "2");
+    fn literal() {
+        assert_success(Rule::literal, "(  )");
+        assert_success(Rule::literal, "true");
+        assert_success(Rule::literal, "#` hoge`");
+        assert_success(Rule::literal, "2.3pt");
+        assert_success(Rule::literal, "2.3");
+        assert_success(Rule::literal, "2");
     }
 
 }
