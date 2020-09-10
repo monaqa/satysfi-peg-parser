@@ -341,12 +341,13 @@ unit_const = { "(" ~ ")" }
 bool_const = { "true" | "false" }
 
 int_decimal_const = { ASCII_NONZERO_DIGIT ~ ASCII_DIGIT* | "0" }
-int_const = ${ (int_hex_const | int_decimal_const) ~ !length_unit }
+float_inner = { ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT* | "." ~ ASCII_DIGIT+ }
+int_const = ${ (int_hex_const | int_decimal_const) ~ !(length_unit | ".") }
     int_hex_const = { "0" ~ ("x" | "X") ~ ASCII_HEX_DIGIT+ }
-float_const = @{ (ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT* | "." ~ ASCII_DIGIT+) ~ !length_unit }
-length_const = @{ length_digit ~ length_unit }
-length_digit = _{ (float_const | int_decimal_const) }
-length_unit = { ASCII_ALPHA_LOWER ~ (ASCII_ALPHANUMERIC | "-")* }
+float_const = @{ float_inner ~ !length_unit }
+length_const = ${ length_digit ~ length_unit }
+length_digit = _{ (float_inner | int_decimal_const) }
+length_unit = @{ ASCII_ALPHA_LOWER ~ (ASCII_ALPHANUMERIC | "-")* }
 
 string_const = @{
     string_omit_space_identifier?

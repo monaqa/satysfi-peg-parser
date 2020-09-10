@@ -1,10 +1,11 @@
 pub mod common {
 
     use pest::iterators::Pair;
+    use pest::Span;
     pub use crate::Rule;
 
     #[derive(Debug)]
-pub struct Location {
+    pub struct Location {
         pub row: usize,
         pub col: usize
     }
@@ -18,9 +19,9 @@ pub struct Location {
 
     impl<T> Ranged<T> {
 
-        pub fn wrap(body: T, pair: &Pair<Rule>) -> Self {
-            let start = pair.as_span().start_pos().line_col();
-            let end = pair.as_span().end_pos().line_col();
+        pub fn wrap(body: T, span: &Span) -> Self {
+            let start = span.start_pos().line_col();
+            let end = span.end_pos().line_col();
 
             let start = Location{ row: start.0, col: start.1 };
             let end = Location{ row: end.0, col: end.1 };
@@ -124,11 +125,32 @@ pub mod constant {
 
             match inner.as_rule() {
                 Rule::unit_const => Literal::Unit(
-                    Ranged::wrap((), &inner)
+                    Ranged::wrap((), &inner.as_span())
                 ),
+                Rule::bool_const => Literal::Bool({
+                    let body = match inner.as_str() {
+                        "true" => true,
+                        "false" => false,
+                        _ => unreachable!(),
+                    };
+                    Ranged::wrap(body, &inner.as_span())
+                }),
                 Rule::int_const => Literal::Int({
                     let inner = inner.into_inner().next().unwrap();
                     Literal::parse_int(inner)
+                }),
+                Rule::float_const => Literal::Float({
+                    let body = inner.as_str().parse().unwrap();
+                    Ranged::wrap(body, &inner.as_span())
+                }),
+                Rule::length_const => Literal::Length({
+                    let span = inner.as_span();
+                    let mut pairs_inner = inner.into_inner();
+                    let digit = pairs_inner.next().unwrap();
+                    let unit = pairs_inner.next().unwrap();
+                    let value: f64 = digit.as_str().parse().unwrap();
+                    let body = Length { value, unit: unit.as_str().to_owned() };
+                    Ranged::wrap(body, &span)
                 }),
                 rule => unreachable!(format!("unreachable rule: {:?}", rule))
             }
@@ -145,15 +167,14 @@ pub mod constant {
                     let without_prefix = body.trim_start_matches("0x")
                         .trim_start_matches("0X");
                     let z = i32::from_str_radix(without_prefix, 16).unwrap();
-                    Ranged::wrap(z, &pair)
+                    Ranged::wrap(z, &pair.as_span())
                 }
                 Rule::int_decimal_const => {
                     let body: i32 = pair.as_str().parse().unwrap();
-                    Ranged::wrap(body, &pair)
+                    Ranged::wrap(body, &pair.as_span())
                 }
                 _ => unreachable!()
             }
-
         }
 
     }

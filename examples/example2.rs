@@ -8,7 +8,7 @@ use satysfi_peg_parser::grammar::{common::Grammar, constant::Literal};
 
 fn main() {
 
-    let mut pairs: Pairs<Rule> = SatysfiParser::parse(Rule::literal, "10249821").unwrap();
+    let mut pairs: Pairs<Rule> = SatysfiParser::parse(Rule::literal, "12.5pt").unwrap();
     let literal_pair = pairs.next().unwrap();
 
     dbg!(&literal_pair);
