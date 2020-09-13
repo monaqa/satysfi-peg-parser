@@ -11,6 +11,24 @@ pub mod common {
         pub col: usize
     }
 
+    #[macro_export]
+    macro_rules! ranged {
+        ($body:expr, ($r1:expr, $r2:expr), ($c1: expr, $c2: expr)) => {
+            Ranged{
+                start: Location{ row: $r1, col: $c1 },
+                end: Location{ row: $r2, col: $c2 },
+                body: $body
+            }
+        };
+        ($body:expr, ($c1: expr, $c2: expr)) => {
+            Ranged{
+                start: Location{ row: 1, col: $c1 },
+                end: Location{ row: 1, col: $c2 },
+                body: $body
+            }
+        };
+    }
+
     #[derive(Debug, Eq, PartialEq, Ord, PartialOrd)]
     pub struct Ranged<T> {
         pub start: Location,
