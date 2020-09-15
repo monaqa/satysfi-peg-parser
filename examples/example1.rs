@@ -1,7 +1,5 @@
 use pest::Parser;
-use pest::Token;
 use pest::iterators::Pair;
-use pest::Position;
 use satysfi_peg_parser::{SatysfiParser, Rule};
 
 use std::fs;
@@ -9,7 +7,7 @@ use std::fs;
 fn main() {
 
     let unparsed_file = fs::read_to_string("examples/example1.saty").expect("cannot read file");
-    let mut pairs = SatysfiParser::parse(Rule::program, &unparsed_file).unwrap();
+    let pairs = SatysfiParser::parse(Rule::program, &unparsed_file).unwrap();
 
     // let header = pairs.next().unwrap();
     // dbg!(&header.into_inner().next().unwrap().into_inner().next());

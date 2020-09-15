@@ -1,17 +1,8 @@
 #[cfg(test)]
 mod tests {
 
-    use pest::Parser;
-    use crate::{SatysfiParser, Rule};
-    use crate::grammar::{common::Grammar, literal::Literal};
-    use pest::iterators::Pairs;
+    use crate::Rule;
     use super::super::common::{assert_success, assert_fail};
-
-    fn assert_parsed(text: &str) {
-        let mut pairs: Pairs<Rule> = SatysfiParser::parse(Rule::literal, text).unwrap();
-        let literal_pair = pairs.next().unwrap();
-        let literal = Literal::parse(literal_pair);
-    }
 
     #[test]
     fn int() {

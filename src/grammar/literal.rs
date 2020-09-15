@@ -1,5 +1,4 @@
 use super::common::{Grammar, Ranged, Rule};
-use float_cmp::approx_eq;
 use pest::iterators::Pair;
 use std::i32;
 

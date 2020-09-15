@@ -57,21 +57,21 @@ pub mod common {
 
 }
 
-pub mod program {
-
-    use super::common::Ranged;
-    use super::header::{Stage, Header};
-    use super::statement::Preamble;
-    use super::expr::Expr;
-
-    struct Program {
-        stage: Option<Ranged<Stage>>,
-        header: Vec<Ranged<Header>>,
-        preamble: Option<Ranged<Preamble>>,
-        body: Ranged<Expr>,
-    }
-
-}
+// pub mod program {
+// 
+//     use super::common::Ranged;
+//     use super::header::{Stage, Header};
+//     use super::statement::Preamble;
+//     use super::expr::Expr;
+// 
+//     struct Program {
+//         stage: Option<Ranged<Stage>>,
+//         header: Vec<Ranged<Header>>,
+//         preamble: Option<Ranged<Preamble>>,
+//         body: Ranged<Expr>,
+//     }
+// 
+// }
 
 pub mod header {
 
