@@ -1,8 +1,9 @@
 pub mod common {
 
-    use pest::iterators::Pair;
+    use pest::iterators::{Pair, Pairs};
     use pest::Span;
-    pub use crate::Rule;
+    pub use crate::{SatysfiParser, Rule};
+    use pest::Parser;
 
     // TODO: custom definition of Ord, PartialOrd
     #[derive(Debug, Eq, PartialEq, Ord, PartialOrd)]
@@ -49,10 +50,37 @@ pub mod common {
         }
     }
 
-    pub trait Grammar {
+    pub trait Grammar: Sized {
 
-        fn parse(pair: Pair<Rule>) -> Self;
+        /// 何のルールに基づく文字列をパースすることができるか。
+        fn rule() -> Rule;
 
+        fn parse_pair(pair: Pair<Rule>) -> Self;
+
+        fn parse(text: &str) -> Result<Self, pest::error::Error<Rule>> {
+            let mut pairs: Pairs<Rule> = SatysfiParser::parse(Self::rule(), text)?;
+            let pair = pairs.next().unwrap();
+            Ok(Self::parse_pair(pair))
+        }
+
+    }
+
+    #[derive(Debug, PartialEq)]
+    pub enum Type {
+        Unknown,
+        Int,
+        Float,
+        String,
+        Function,
+    }
+
+    /// テスト用の関数。正しくパースされるかどうか検証する。
+    pub fn assert_parsed<T:std::fmt::Debug + Grammar + PartialEq>(text: &str, expect: T) {
+        let mut pairs: Pairs<Rule> = SatysfiParser::parse(T::rule(), text).unwrap();
+        let vertical_pair = pairs.next().unwrap();
+        let actual = T::parse_pair(vertical_pair);
+
+        assert_eq!(actual, expect);
     }
 
 }
@@ -107,6 +135,7 @@ pub mod statement {
 }
 
 pub mod expr {
+    use super::common::Type;
 
     pub enum Expr {
         Match,
@@ -119,7 +148,13 @@ pub mod expr {
         RecordMember,
         Unary
     }
+
+    pub struct Variable {
+        name: String,
+        t: Type,
+    }
 }
 
 pub mod literal;
 
+pub mod vertical;

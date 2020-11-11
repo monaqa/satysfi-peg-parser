@@ -405,7 +405,7 @@ horizontal_text_embedding = ${ "#" ~ (var_ptn | modvar) ~ ";" }
 
 // vertical {{{
 
-vertical_mode = _{ (block_cmd | block_text_embedding)* }
+vertical_mode = { (block_cmd | block_text_embedding)* }
 block_cmd_name = @{ "+" ~ (var_ptn | modvar) }
 block_cmd = {
     block_cmd_name

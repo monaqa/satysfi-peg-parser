@@ -13,7 +13,7 @@ pub enum Literal {
 }
 
 impl Grammar for Literal {
-    fn parse(pair: pest::iterators::Pair<Rule>) -> Self {
+    fn parse_pair(pair: Pair<Rule>) -> Self {
         let inner = pair.into_inner().next().unwrap();
 
         match inner.as_rule() {
@@ -78,6 +78,10 @@ impl Grammar for Literal {
             rule => unreachable!(format!("invalid rule: '{:?}' in rule 'literal'", rule)),
         }
     }
+
+    fn rule() -> Rule {
+        Rule::literal
+    }
 }
 
 impl Literal {
@@ -106,20 +110,9 @@ pub struct Length {
 
 #[cfg(test)]
 mod tests {
-    use crate::{Rule, SatysfiParser};
-    use pest::Parser;
     use crate::ranged;
     use super::*;
-    use crate::grammar::common::Location;
-    use pest::iterators::Pairs;
-
-    fn assert_parsed(text: &str, expect: Literal) {
-        let mut pairs: Pairs<Rule> = SatysfiParser::parse(Rule::literal, text).unwrap();
-        let literal_pair = pairs.next().unwrap();
-        let actual = Literal::parse(literal_pair);
-
-        assert_eq!(actual, expect);
-    }
+    use crate::grammar::common::{Location, assert_parsed};
 
     #[test]
     fn parse_literal() {
