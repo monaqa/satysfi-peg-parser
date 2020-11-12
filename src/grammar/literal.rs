@@ -13,6 +13,10 @@ pub enum Literal {
 }
 
 impl Grammar for Literal {
+    fn rule() -> Rule {
+        Rule::literal
+    }
+
     fn parse_pair(pair: Pair<Rule>) -> Self {
         let inner = pair.into_inner().next().unwrap();
 
@@ -79,9 +83,6 @@ impl Grammar for Literal {
         }
     }
 
-    fn rule() -> Rule {
-        Rule::literal
-    }
 }
 
 impl Literal {

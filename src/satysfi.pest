@@ -385,6 +385,7 @@ horizontal_special_char = @{
 inline_cmd_name = @{ "\\" ~ (var_ptn | modvar) }
 inline_cmd = {
     inline_cmd_name
+    // TODO: cmd_expr_option が必ず前に来るようにする
     ~ (cmd_expr_arg | cmd_expr_option)*
     ~ (";" | (cmd_text_arg)+)
 }
@@ -409,6 +410,7 @@ vertical_mode = { (block_cmd | block_text_embedding)* }
 block_cmd_name = @{ "+" ~ (var_ptn | modvar) }
 block_cmd = {
     block_cmd_name
+    // TODO: cmd_expr_option が必ず前に来るようにする
     ~ (cmd_expr_arg | cmd_expr_option)*
     ~ (";" | (cmd_text_arg)+)
 }
