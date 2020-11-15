@@ -153,6 +153,24 @@ impl Grammar for Expr {
     }
 
     fn parse_pair(pair: Pair<'_>) -> Self {
+        let mut pairs = pair.into_inner();
+        let inner = pairs.next().unwrap();
+
+        match inner.as_rule() {
+            Rule::match_expr => todo!(),
+            Rule::bind_stmt => {
+                let sub_expr = pairs.next().unwrap();
+            }
+            Rule::ctrl_while => todo!(),
+            Rule::ctrl_if => todo!(),
+            Rule::dyadic_expr => todo!(),
+            Rule::unary_operator_expr => todo!(),
+            Rule::variant_constructor => todo!(),
+            Rule::application => todo!(),
+            Rule::record_member => todo!(),
+            Rule::unary => todo!(),
+            _ => unreachable!()
+        }
         todo!()
     }
 }
@@ -201,11 +219,28 @@ pub enum Record {
 
 impl Grammar for Record {
     fn rule() -> Rule {
-        todo!()
+        Rule::record
     }
 
     fn parse_pair(pair: Pair<'_>) -> Self {
-        todo!()
+        let mut pairs = pair.into_inner();
+        let pair = pairs.peek();
+        if pair.is_none() {
+            return Record::Map(vec![]);
+        }
+        match pair.unwrap().as_rule() {
+            Rule::unary => {
+                let pair_default = pairs.next().unwrap();
+                let default = Box::new(Unary::parse_pair_ranged(pair_default));
+                let map = pairs.map(RecordUnit::parse_pair).collect();
+                Record::MapWithDefault { map, default }
+            },
+            Rule::record_inner => {
+                let map = pairs.map(RecordUnit::parse_pair).collect();
+                Record::Map(map)
+            },
+            _ => unreachable!()
+        }
     }
 }
 
@@ -217,11 +252,16 @@ pub struct RecordUnit {
 
 impl Grammar for RecordUnit {
     fn rule() -> Rule {
-        todo!()
+        Rule::record_unit
     }
 
     fn parse_pair(pair: Pair<'_>) -> Self {
-        todo!()
+        let mut pairs = pair.into_inner();
+        let pair_var_ptn = pairs.next().unwrap();
+        let pair_expr = pairs.next().unwrap();
+        let key = Ranged::wrap(pair_var_ptn.as_str().to_owned(), &pair_var_ptn.as_span());
+        let val = Expr::parse_pair_ranged(pair_expr);
+        RecordUnit{ key, val }
     }
 }
 
@@ -230,11 +270,12 @@ pub struct List(Vec<Ranged<Expr>>);
 
 impl Grammar for List {
     fn rule() -> Rule {
-        todo!()
+        Rule::list
     }
 
     fn parse_pair(pair: Pair<'_>) -> Self {
-        todo!()
+        let pairs_expr = pair.into_inner();
+        List(pairs_expr.map(Expr::parse_pair_ranged).collect())
     }
 }
 
@@ -243,11 +284,12 @@ pub struct Tuple(Vec<Ranged<Expr>>);
 
 impl Grammar for Tuple {
     fn rule() -> Rule {
-        todo!()
+        Rule::tuple
     }
 
     fn parse_pair(pair: Pair<'_>) -> Self {
-        todo!()
+        let pairs_expr = pair.into_inner();
+        Tuple(pairs_expr.map(Expr::parse_pair_ranged).collect())
     }
 }
 
@@ -276,11 +318,15 @@ pub struct Vertical(Vec<Ranged<VerticalElement>>);
 
 impl Grammar for Vertical {
     fn rule() -> Rule {
-        Rule::int_const
+        Rule::vertical_mode
     }
 
     fn parse_pair(pair: Pair<'_>) -> Self {
-        todo!()
+        Vertical(
+            pair.into_inner()
+                .map(VerticalElement::parse_pair_ranged)
+                .collect(),
+        )
     }
 }
 
@@ -292,18 +338,49 @@ pub enum VerticalElement {
         opts: Vec<Ranged<Expr>>,
     },
     BlockTextEmbedding {
-        mod_name: Option<Ranged<()>>,
+        mod_name: Option<Ranged<String>>,
         name: Ranged<String>,
     },
 }
 
 impl Grammar for VerticalElement {
     fn rule() -> Rule {
-        Rule::int_const
+        Rule::vertical_element
     }
 
     fn parse_pair(pair: Pair<'_>) -> Self {
-        todo!()
+        let inner_vertical_element = pair.into_inner().next().unwrap();
+        match inner_vertical_element.as_rule() {
+            Rule::block_cmd => {
+                let mut inner_cmd = inner_vertical_element.into_inner();
+                let name = inner_cmd.next().unwrap();
+                VerticalElement::BlockCmd {
+                    name: String::parse_pair_ranged(name),
+                    opts: vec![],
+                    args: vec![],
+                }
+            }
+            Rule::block_text_embedding => {
+                let name = inner_vertical_element.into_inner().next().unwrap();
+                match name.as_rule() {
+                    Rule::var_ptn => VerticalElement::BlockTextEmbedding {
+                        name: String::parse_pair_ranged(name),
+                        mod_name: None,
+                    },
+                    Rule::modvar => {
+                        let mut pairs = name.into_inner();
+                        let module_name = pairs.next().unwrap();
+                        let var_ptn = pairs.next().unwrap();
+                        VerticalElement::BlockTextEmbedding {
+                            name: String::parse_pair_ranged(var_ptn),
+                            mod_name: Some(String::parse_pair_ranged(module_name)),
+                        }
+                    }
+                    _ => unreachable!(),
+                }
+            }
+            _ => unreachable!(),
+        }
     }
 }
 
@@ -396,7 +473,7 @@ impl Grammar for bool {
         match pair.as_str() {
             "true" => true,
             "false" => false,
-            _ => unreachable!()
+            _ => unreachable!(),
         }
     }
 }
@@ -422,9 +499,9 @@ impl Grammar for i32 {
             Rule::int_hex_const => {
                 let digits = inner_int_const.as_str().trim_start_matches("0x");
                 i32::from_str_radix(digits, 16).unwrap()
-            },
+            }
             Rule::int_decimal_const => inner_int_const.as_str().parse().unwrap(),
-            _ => unreachable!()
+            _ => unreachable!(),
         }
     }
 }
