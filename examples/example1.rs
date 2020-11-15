@@ -1,6 +1,6 @@
 use pest::Parser;
 use pest::iterators::Pair;
-use satysfi_peg_parser::{SatysfiParser, Rule};
+use satysfi_peg_parser::satysfi::{SatysfiParser, Rule};
 
 use std::fs;
 

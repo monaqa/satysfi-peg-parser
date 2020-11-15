@@ -217,6 +217,7 @@ unary = {  // 1つの項として扱えるもの．
     | modvar
     | var
 }
+
 unary_operator_expr = {
     unary_operator ~ (application | record_member | unary)
 }

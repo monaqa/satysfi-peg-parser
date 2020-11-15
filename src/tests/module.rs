@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
 
-    use crate::Rule;
+    use crate::satysfi::Rule;
     use super::super::common::{assert_success, assert_fail};
 
     #[test]

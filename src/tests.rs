@@ -15,7 +15,7 @@ pub mod common{
 
     use pest::Parser;
     use pest::iterators::Pairs;
-    use crate::{SatysfiParser, Rule};
+    use crate::satysfi::{SatysfiParser, Rule};
 
     pub fn assert_success(rule: Rule, text: &str) {
         let pairs: Pairs<Rule> = SatysfiParser::parse(rule, text).unwrap();

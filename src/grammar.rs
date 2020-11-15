@@ -1,6 +1,6 @@
 pub mod common {
 
-    pub use crate::{Rule, SatysfiParser};
+    pub use crate::satysfi::{Rule, SatysfiParser};
     use pest::iterators::{Pair, Pairs};
     use pest::Parser;
     use pest::Span;
@@ -139,26 +139,7 @@ pub mod statement {
     }
 }
 
-pub mod expr {
-    use super::common::Type;
-
-    pub enum Expr {
-        Match,
-        BindStmt,
-        CtrlFlow,
-        Dyadic,
-        UnaryOperator,
-        VariantConstructor,
-        Application,
-        RecordMember,
-        Unary,
-    }
-
-    pub struct Variable {
-        name: String,
-        t: Type,
-    }
-}
+pub mod expr;
 
 pub mod literal;
 
