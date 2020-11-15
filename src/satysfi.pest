@@ -25,14 +25,15 @@ pkgname = ${ (!("\r" | "\n") ~ ANY)+ }
 
 // statement {{{
 
-preamble = _{ (
+preamble = { statement+ }
+statement = {
     let_stmt
     | let_inline_stmt
     | let_block_stmt
     | let_math_stmt
     | let_mutable_stmt
     | module_stmt
-)+ }
+}
 let_stmt = { "let" ~ pattern ~ stmt_argument? ~ "=" ~ expr }
 let_inline_stmt = {
     "let-inline" ~
@@ -163,7 +164,8 @@ pat_tuple = {
 expr = {
     match_expr
     | bind_stmt ~ expr
-    | ctrl_flow
+    | ctrl_while
+    | ctrl_if
     | dyadic_expr
     | unary_operator_expr
     | variant_constructor
@@ -181,10 +183,6 @@ match_arm = {
     | match_ptn ~ "->" ~ (!match_expr ~ expr)
 }
 
-ctrl_flow = _{
-    ctrl_while
-    | ctrl_if
-}
 ctrl_while = {
     "while" ~ expr ~ "do" ~ expr
 }
