@@ -27,7 +27,6 @@ impl Grammar for Program {
     }
 }
 
-
 /// どのステージに属するか。
 #[derive(Debug, PartialEq)]
 pub enum Stage {
@@ -49,7 +48,6 @@ impl Grammar for Stage {
     }
 }
 
-
 /// ヘッダ。
 #[derive(Debug, PartialEq)]
 pub enum Header {
@@ -68,7 +66,6 @@ impl Grammar for Header {
         todo!()
     }
 }
-
 
 /// プリアンブル部分。
 #[derive(Debug, PartialEq)]
@@ -104,7 +101,6 @@ impl Grammar for Statement {
         todo!()
     }
 }
-
 
 /// 式。
 #[derive(Debug, PartialEq)]
@@ -161,7 +157,6 @@ impl Grammar for Expr {
     }
 }
 
-
 /// 単項式。
 #[derive(Debug, PartialEq)]
 pub enum Unary {
@@ -195,7 +190,6 @@ impl Grammar for Unary {
     }
 }
 
-
 #[derive(Debug, PartialEq)]
 pub enum Record {
     Map(Vec<RecordUnit>),
@@ -215,7 +209,6 @@ impl Grammar for Record {
     }
 }
 
-
 #[derive(Debug, PartialEq)]
 pub struct RecordUnit {
     key: Ranged<String>,
@@ -231,7 +224,6 @@ impl Grammar for RecordUnit {
         todo!()
     }
 }
-
 
 #[derive(Debug, PartialEq)]
 pub struct List(Vec<Ranged<Expr>>);
@@ -278,7 +270,6 @@ impl Grammar for Variable {
         todo!()
     }
 }
-
 
 #[derive(Debug, PartialEq)]
 pub struct Vertical(Vec<Ranged<VerticalElement>>);
@@ -332,70 +323,47 @@ impl Grammar for Literal {
     }
 
     fn parse_pair<'i>(pair: Pair<'i>) -> Self {
-        // let inner = pair.into_inner().next().unwrap();
-        //
-        // match inner.as_rule() {
-        //     Rule::unit_const => Literal::Unit(Ranged::wrap((), &inner.as_span())),
-        //     Rule::bool_const => Literal::Bool({
-        //         let body = match inner.as_str() {
-        //             "true" => true,
-        //             "false" => false,
-        //             _ => unreachable!(),
-        //         };
-        //         Ranged::wrap(body, &inner.as_span())
-        //     }),
-        //     Rule::int_const => Literal::Int({
-        //         let inner = inner.into_inner().next().unwrap();
-        //         Literal::parse_int(inner)
-        //     }),
-        //     Rule::float_const => Literal::Float({
-        //         let body = inner.as_str().parse().unwrap();
-        //         Ranged::wrap(body, &inner.as_span())
-        //     }),
-        //     Rule::length_const => Literal::Length({
-        //         let span = inner.as_span();
-        //         let mut pairs_inner = inner.into_inner();
-        //         let digit = pairs_inner.next().unwrap();
-        //         let unit = pairs_inner.next().unwrap();
-        //         let value: f64 = digit.as_str().parse().unwrap();
-        //         let body = Length {
-        //             value,
-        //             unit: unit.as_str().to_owned(),
-        //         };
-        //         Ranged::wrap(body, &span)
-        //     }),
-        //     Rule::string_const => Literal::String({
-        //         let span = inner.as_span();
-        //         let mut pairs_inner = inner.into_inner();
-        //         let mut trim_start = true;
-        //         let mut trim_end = true;
-        //         let mut term = pairs_inner.next().unwrap();
-        //         if let Rule::string_omit_space_identifier = term.as_rule() {
-        //             trim_start = false;
-        //             term = pairs_inner.next().unwrap();
-        //         }
-        //         if let Some(t) = pairs_inner.next() {
-        //             match t.as_rule() {
-        //                 Rule::string_omit_space_identifier => {
-        //                     trim_end = false;
-        //                 }
-        //                 _ => unreachable!(),
-        //             }
-        //         }
-        //
-        //         let mut body = term.as_str();
-        //         if trim_start {
-        //             body = body.trim_start()
-        //         }
-        //         if trim_end {
-        //             body = body.trim_end()
-        //         }
-        //
-        //         Ranged::wrap(body.to_owned(), &span)
-        //     }),
-        //     rule => unreachable!(format!("invalid rule: '{:?}' in rule 'literal'", rule)),
-        // }
-        todo!()
+        let inner = pair.into_inner().next().unwrap();
+
+        match inner.as_rule() {
+            Rule::unit_const => Literal::Unit(Ranged::wrap((), &inner.as_span())),
+            Rule::bool_const => Literal::Bool(Grammar::parse_pair_ranged(inner)),
+            Rule::string_const => Literal::String({
+                let span_string_const = inner.as_span();
+                let mut pairs_string_const = inner.into_inner();
+                let mut trim_start = true;
+                let mut trim_end = true;
+                let mut term = pairs_string_const.next().unwrap();
+                if let Rule::string_omit_space_identifier = term.as_rule() {
+                    // string_omit_space_identifier から始まったときは trim しない
+                    trim_start = false;
+                    term = pairs_string_const.next().unwrap();
+                }
+                if let Some(t) = pairs_string_const.next() {
+                    match t.as_rule() {
+                        Rule::string_omit_space_identifier => {
+                            // string_omit_space_identifier で終わったときは trim しない
+                            trim_end = false;
+                        }
+                        _ => unreachable!(),
+                    }
+                }
+
+                let mut body = term.as_str();
+                if trim_start {
+                    body = body.trim_start()
+                }
+                if trim_end {
+                    body = body.trim_end()
+                }
+
+                Ranged::wrap(body.to_owned(), &span_string_const)
+            }),
+            Rule::float_const => Literal::Float(Grammar::parse_pair_ranged(inner)),
+            Rule::int_const => Literal::Int(Grammar::parse_pair_ranged(inner)),
+            Rule::length_const => Literal::Length(Length::parse_pair_ranged(inner)),
+            rule => unreachable!(format!("invalid rule: '{:?}' in rule 'literal'", rule)),
+        }
     }
 }
 
@@ -411,7 +379,11 @@ impl Grammar for Length {
     }
 
     fn parse_pair<'i>(pair: Pair<'i>) -> Self {
-        todo!()
+        let mut pairs = pair.into_inner();
+        let digit = pairs.next().unwrap();
+        let unit = pairs.next().unwrap().as_str().to_owned();
+        let value: f64 = digit.as_str().parse().unwrap();
+        Length { value, unit }
     }
 }
 
@@ -421,7 +393,11 @@ impl Grammar for bool {
     }
 
     fn parse_pair<'i>(pair: Pair<'i>) -> Self {
-        todo!()
+        match pair.as_str() {
+            "true" => true,
+            "false" => false,
+            _ => unreachable!()
+        }
     }
 }
 
@@ -431,7 +407,7 @@ impl Grammar for f64 {
     }
 
     fn parse_pair<'i>(pair: Pair<'i>) -> Self {
-        todo!()
+        pair.as_str().parse().unwrap()
     }
 }
 
@@ -441,6 +417,14 @@ impl Grammar for i32 {
     }
 
     fn parse_pair<'i>(pair: Pair<'i>) -> Self {
-        todo!()
+        let inner_int_const = pair.into_inner().next().unwrap();
+        match inner_int_const.as_rule() {
+            Rule::int_hex_const => {
+                let digits = inner_int_const.as_str().trim_start_matches("0x");
+                i32::from_str_radix(digits, 16).unwrap()
+            },
+            Rule::int_decimal_const => inner_int_const.as_str().parse().unwrap(),
+            _ => unreachable!()
+        }
     }
 }

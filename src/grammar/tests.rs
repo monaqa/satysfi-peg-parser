@@ -1,11 +1,11 @@
 use super::*;
 
-use crate::ranged;
 use crate::parser::{Pairs, SatysfiParser};
+use crate::ranged;
 use pest::Parser;
 
-
 /// テスト用の関数。正しくパースされるかどうか検証する。
+/// TODO: not fully parsed なときに fail する
 fn assert_parsed<'i, T: std::fmt::Debug + Grammar + PartialEq>(text: &'i str, expect: T) {
     let mut pairs: Pairs<'i> = SatysfiParser::parse(T::rule(), text).unwrap();
     let vertical_pair = pairs.next().unwrap();
@@ -15,6 +15,7 @@ fn assert_parsed<'i, T: std::fmt::Debug + Grammar + PartialEq>(text: &'i str, ex
 }
 
 /// テスト用の関数。正しくパースを拒否できるかどうか検証する。
+/// TODO: not fully parsed なときに OK とする
 fn assert_not_parsed<T: std::fmt::Debug + Grammar + PartialEq>(text: &str) {
     if SatysfiParser::parse(T::rule(), text).is_ok() {
         panic!(format!(
@@ -32,10 +33,16 @@ fn parse_literal() {
 
     assert_parsed("true", Literal::Bool(ranged![true, (1, 5)]));
     assert_parsed("false", Literal::Bool(ranged![false, (1, 6)]));
+    assert_not_parsed::<Literal>("True");
+    assert_not_parsed::<Literal>("TRUE");
 
     assert_parsed("123", Literal::Int(ranged![123, (1, 4)]));
+    assert_parsed("0x123", Literal::Int(ranged![0x123, (1, 6)]));
     assert_parsed("0x2f1f", Literal::Int(ranged![0x2f1f, (1, 7)]));
     assert_parsed("0x2F1F", Literal::Int(ranged![0x2f1f, (1, 7)]));
+    // assert_not_parsed::<Literal>("1_000");
+    // assert_not_parsed::<Literal>("0X2f1f");
+    // assert_not_parsed::<Literal>("0X2F1F");
 
     assert_parsed("123.56", Literal::Float(ranged![123.56, (1, 7)]));
     assert_parsed(".56", Literal::Float(ranged![0.56, (1, 4)]));
@@ -43,38 +50,86 @@ fn parse_literal() {
 
     assert_parsed(
         "0pt",
-        Literal::Length(ranged![Length{value: 0.0, unit: "pt".to_owned()}, (1, 4)])
+        Literal::Length(ranged![
+            Length {
+                value: 0.0,
+                unit: "pt".to_owned()
+            },
+            (1, 4)
+        ]),
     );
     assert_parsed(
         "0cm",
-        Literal::Length(ranged![Length{value: 0.0, unit: "cm".to_owned()}, (1, 4)])
+        Literal::Length(ranged![
+            Length {
+                value: 0.0,
+                unit: "cm".to_owned()
+            },
+            (1, 4)
+        ]),
     );
     assert_parsed(
         "0aa",
-        Literal::Length(ranged![Length{value: 0.0, unit: "aa".to_owned()}, (1, 4)])
+        Literal::Length(ranged![
+            Length {
+                value: 0.0,
+                unit: "aa".to_owned()
+            },
+            (1, 4)
+        ]),
     );
     assert_parsed(
         "12pt",
-        Literal::Length(ranged![Length{value: 12.0, unit: "pt".to_owned()}, (1, 5)])
+        Literal::Length(ranged![
+            Length {
+                value: 12.0,
+                unit: "pt".to_owned()
+            },
+            (1, 5)
+        ]),
     );
     assert_parsed(
         "12.3pt",
-        Literal::Length(ranged![Length{value: 12.3, unit: "pt".to_owned()}, (1, 7)])
+        Literal::Length(ranged![
+            Length {
+                value: 12.3,
+                unit: "pt".to_owned()
+            },
+            (1, 7)
+        ]),
     );
     assert_parsed(
         "12.pt",
-        Literal::Length(ranged![Length{value: 12.0, unit: "pt".to_owned()}, (1, 6)])
+        Literal::Length(ranged![
+            Length {
+                value: 12.0,
+                unit: "pt".to_owned()
+            },
+            (1, 6)
+        ]),
     );
     assert_parsed(
         ".3pt",
-        Literal::Length(ranged![Length{value: 0.3, unit: "pt".to_owned()}, (1, 5)])
+        Literal::Length(ranged![
+            Length {
+                value: 0.3,
+                unit: "pt".to_owned()
+            },
+            (1, 5)
+        ]),
     );
     assert_parsed(
         ".3pt2",
-        Literal::Length(ranged![Length{value: 0.3, unit: "pt2".to_owned()}, (1, 6)])
+        Literal::Length(ranged![
+            Length {
+                value: 0.3,
+                unit: "pt2".to_owned()
+            },
+            (1, 6)
+        ]),
     );
 
-
+    assert_parsed("` `", Literal::String(ranged!["".to_owned(), (1, 4)]));
     assert_parsed("`a`", Literal::String(ranged!["a".to_owned(), (1, 4)]));
     assert_parsed(
         "`` a` ``",
@@ -108,4 +163,5 @@ fn parse_literal() {
         "` hoge\nfuga `",
         Literal::String(ranged!["hoge\nfuga".to_owned(), (1, 2), (1, 7)]),
     );
+    assert_not_parsed::<Literal>("``");
 }
