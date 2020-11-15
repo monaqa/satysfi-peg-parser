@@ -22,7 +22,7 @@ impl Grammar for Program {
         todo!()
     }
 
-    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
+    fn parse_pair(pair: Pair<'_>) -> Self {
         todo!()
     }
 }
@@ -43,7 +43,7 @@ impl Grammar for Stage {
         todo!()
     }
 
-    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
+    fn parse_pair(pair: Pair<'_>) -> Self {
         todo!()
     }
 }
@@ -62,7 +62,7 @@ impl Grammar for Header {
         todo!()
     }
 
-    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
+    fn parse_pair(pair: Pair<'_>) -> Self {
         todo!()
     }
 }
@@ -76,7 +76,7 @@ impl Grammar for Preamble {
         todo!()
     }
 
-    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
+    fn parse_pair(pair: Pair<'_>) -> Self {
         todo!()
     }
 }
@@ -97,7 +97,7 @@ impl Grammar for Statement {
         todo!()
     }
 
-    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
+    fn parse_pair(pair: Pair<'_>) -> Self {
         todo!()
     }
 }
@@ -152,7 +152,7 @@ impl Grammar for Expr {
         todo!()
     }
 
-    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
+    fn parse_pair(pair: Pair<'_>) -> Self {
         todo!()
     }
 }
@@ -185,7 +185,7 @@ impl Grammar for Unary {
         todo!()
     }
 
-    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
+    fn parse_pair(pair: Pair<'_>) -> Self {
         todo!()
     }
 }
@@ -204,7 +204,7 @@ impl Grammar for Record {
         todo!()
     }
 
-    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
+    fn parse_pair(pair: Pair<'_>) -> Self {
         todo!()
     }
 }
@@ -220,7 +220,7 @@ impl Grammar for RecordUnit {
         todo!()
     }
 
-    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
+    fn parse_pair(pair: Pair<'_>) -> Self {
         todo!()
     }
 }
@@ -233,7 +233,7 @@ impl Grammar for List {
         todo!()
     }
 
-    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
+    fn parse_pair(pair: Pair<'_>) -> Self {
         todo!()
     }
 }
@@ -246,7 +246,7 @@ impl Grammar for Tuple {
         todo!()
     }
 
-    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
+    fn parse_pair(pair: Pair<'_>) -> Self {
         todo!()
     }
 }
@@ -266,7 +266,7 @@ impl Grammar for Variable {
         todo!()
     }
 
-    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
+    fn parse_pair(pair: Pair<'_>) -> Self {
         todo!()
     }
 }
@@ -279,7 +279,7 @@ impl Grammar for Vertical {
         Rule::int_const
     }
 
-    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
+    fn parse_pair(pair: Pair<'_>) -> Self {
         todo!()
     }
 }
@@ -302,7 +302,7 @@ impl Grammar for VerticalElement {
         Rule::int_const
     }
 
-    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
+    fn parse_pair(pair: Pair<'_>) -> Self {
         todo!()
     }
 }
@@ -322,12 +322,15 @@ impl Grammar for Literal {
         Rule::literal
     }
 
-    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
+    fn parse_pair(pair: Pair<'_>) -> Self {
         let inner = pair.into_inner().next().unwrap();
 
         match inner.as_rule() {
             Rule::unit_const => Literal::Unit(Ranged::wrap((), &inner.as_span())),
             Rule::bool_const => Literal::Bool(Grammar::parse_pair_ranged(inner)),
+            Rule::int_const => Literal::Int(Grammar::parse_pair_ranged(inner)),
+            Rule::float_const => Literal::Float(Grammar::parse_pair_ranged(inner)),
+            Rule::length_const => Literal::Length(Length::parse_pair_ranged(inner)),
             Rule::string_const => Literal::String({
                 let span_string_const = inner.as_span();
                 let mut pairs_string_const = inner.into_inner();
@@ -359,9 +362,6 @@ impl Grammar for Literal {
 
                 Ranged::wrap(body.to_owned(), &span_string_const)
             }),
-            Rule::float_const => Literal::Float(Grammar::parse_pair_ranged(inner)),
-            Rule::int_const => Literal::Int(Grammar::parse_pair_ranged(inner)),
-            Rule::length_const => Literal::Length(Length::parse_pair_ranged(inner)),
             rule => unreachable!(format!("invalid rule: '{:?}' in rule 'literal'", rule)),
         }
     }
@@ -378,7 +378,7 @@ impl Grammar for Length {
         Rule::length_const
     }
 
-    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
+    fn parse_pair(pair: Pair<'_>) -> Self {
         let mut pairs = pair.into_inner();
         let digit = pairs.next().unwrap();
         let unit = pairs.next().unwrap().as_str().to_owned();
@@ -392,7 +392,7 @@ impl Grammar for bool {
         Rule::bool_const
     }
 
-    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
+    fn parse_pair(pair: Pair<'_>) -> Self {
         match pair.as_str() {
             "true" => true,
             "false" => false,
@@ -406,7 +406,7 @@ impl Grammar for f64 {
         Rule::float_const
     }
 
-    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
+    fn parse_pair(pair: Pair<'_>) -> Self {
         pair.as_str().parse().unwrap()
     }
 }
@@ -416,7 +416,7 @@ impl Grammar for i32 {
         Rule::int_const
     }
 
-    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
+    fn parse_pair(pair: Pair<'_>) -> Self {
         let inner_int_const = pair.into_inner().next().unwrap();
         match inner_int_const.as_rule() {
             Rule::int_hex_const => {

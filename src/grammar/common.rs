@@ -72,10 +72,10 @@ pub trait Grammar: Sized {
     fn rule() -> Rule;
 
     /// pair を読んで自身のデータ構造に格納する。
-    fn parse_pair<'i>(pair: Pair<'i>) -> Self;
+    fn parse_pair(pair: Pair<'_>) -> Self;
 
     /// pair を読んで自身のデータ構造に格納し、さらに範囲の情報を付ける。
-    fn parse_pair_ranged<'i>(pair: Pair<'i>) -> Ranged<Self> {
+    fn parse_pair_ranged(pair: Pair<'_>) -> Ranged<Self> {
         let span = pair.as_span();
         Ranged::wrap(Self::parse_pair(pair), &span)
     }
@@ -94,7 +94,7 @@ impl Grammar for () {
         todo!()
     }
 
-    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
+    fn parse_pair(_pair: Pair<'_>) -> Self {
         todo!()
     }
 }
@@ -106,7 +106,7 @@ impl Grammar for String {
         unreachable!()
     }
 
-    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
+    fn parse_pair(pair: Pair<'_>) -> Self {
         pair.as_str().to_owned()
     }
 
