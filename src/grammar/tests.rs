@@ -27,141 +27,141 @@ fn assert_not_parsed<T: std::fmt::Debug + Grammar + PartialEq>(text: &str) {
 }
 
 #[test]
-fn parse_literal() {
-    assert_parsed("()", Literal::Unit(ranged![(), (1, 3)]));
-    assert_parsed("(  )", Literal::Unit(ranged![(), (1, 5)]));
+fn parse_stage() {
+    assert_parsed("@stage: 0\n", Stage::Stage0);
+    assert_parsed("@stage:0\n", Stage::Stage0);
+    assert_parsed("@stage: 1  \n", Stage::Stage1);
+    assert_parsed("@stage: persistent\n", Stage::Persistent);
+    assert_not_parsed::<Stage>("@stage: 2\n");
+}
 
-    assert_parsed("true", Literal::Bool(ranged![true, (1, 5)]));
-    assert_parsed("false", Literal::Bool(ranged![false, (1, 6)]));
+#[test]
+fn parse_header() {
+    assert_parsed(
+        "@require: code\n",
+        Header::Require(ranged!["code".to_string(), (11, 15)]),
+    );
+    assert_parsed(
+        "@require:code\n",
+        Header::Require(ranged!["code".to_string(), (10, 14)]),
+    );
+    assert_parsed(
+        "@require: base/ref\n",
+        Header::Require(ranged!["base/ref".to_string(), (11, 19)]),
+    );
+    assert_parsed(
+        "@require: $today\n",
+        Header::Require(ranged!["$today".to_string(), (11, 17)]),
+    );
+    assert_parsed(
+        "@import: hoge\n",
+        Header::Import(ranged!["hoge".to_string(), (10, 14)]),
+    );
+    assert_parsed(
+        "@import: ../../fuga\n",
+        Header::Import(ranged!["../../fuga".to_string(), (10, 20)]),
+    );
+    assert_parsed(
+        "@import: ../../fuga base\n",
+        Header::Import(ranged!["../../fuga base".to_string(), (10, 25)]),
+    );
+    assert_not_parsed::<Header>("@require : base\n");
+}
+
+#[test]
+fn parse_literal() {
+    assert_parsed("()", Literal::Unit);
+    assert_parsed("(  )", Literal::Unit);
+
+    assert_parsed("true", Literal::Bool(true));
+    assert_parsed("false", Literal::Bool(false));
     assert_not_parsed::<Literal>("True");
     assert_not_parsed::<Literal>("TRUE");
 
-    assert_parsed("123", Literal::Int(ranged![123, (1, 4)]));
-    assert_parsed("0x123", Literal::Int(ranged![0x123, (1, 6)]));
-    assert_parsed("0x2f1f", Literal::Int(ranged![0x2f1f, (1, 7)]));
-    assert_parsed("0x2F1F", Literal::Int(ranged![0x2f1f, (1, 7)]));
+    assert_parsed("123", Literal::Int(123));
+    assert_parsed("0x123", Literal::Int(0x123));
+    assert_parsed("0x2f1f", Literal::Int(0x2f1f));
+    assert_parsed("0x2F1F", Literal::Int(0x2f1f));
     // assert_not_parsed::<Literal>("1_000");
     // assert_not_parsed::<Literal>("0X2f1f");
     // assert_not_parsed::<Literal>("0X2F1F");
 
-    assert_parsed("123.56", Literal::Float(ranged![123.56, (1, 7)]));
-    assert_parsed(".56", Literal::Float(ranged![0.56, (1, 4)]));
-    assert_parsed("123.", Literal::Float(ranged![123.0, (1, 5)]));
+    assert_parsed("123.56", Literal::Float(123.56));
+    assert_parsed(".56", Literal::Float(0.56));
+    assert_parsed("123.", Literal::Float(123.0));
 
     assert_parsed(
         "0pt",
-        Literal::Length(ranged![
-            Length {
-                value: 0.0,
-                unit: "pt".to_owned()
-            },
-            (1, 4)
-        ]),
+        Literal::Length(Length {
+            value: ranged![0.0, (1, 2)],
+            unit: ranged!["pt".to_owned(), (2, 4)],
+        }),
     );
     assert_parsed(
         "0cm",
-        Literal::Length(ranged![
-            Length {
-                value: 0.0,
-                unit: "cm".to_owned()
-            },
-            (1, 4)
-        ]),
+        Literal::Length(Length {
+            value: ranged![0.0, (1, 2)],
+            unit: ranged!["cm".to_owned(), (2, 4)],
+        }),
     );
     assert_parsed(
         "0aa",
-        Literal::Length(ranged![
-            Length {
-                value: 0.0,
-                unit: "aa".to_owned()
-            },
-            (1, 4)
-        ]),
+        Literal::Length(Length {
+            value: ranged![0.0, (1, 2)],
+            unit: ranged!["aa".to_owned(), (2, 4)],
+        }),
     );
     assert_parsed(
         "12pt",
-        Literal::Length(ranged![
-            Length {
-                value: 12.0,
-                unit: "pt".to_owned()
-            },
-            (1, 5)
-        ]),
+        Literal::Length(Length {
+            value: ranged![12.0, (1, 3)],
+            unit: ranged!["pt".to_owned(), (3, 5)],
+        }),
     );
     assert_parsed(
         "12.3pt",
-        Literal::Length(ranged![
-            Length {
-                value: 12.3,
-                unit: "pt".to_owned()
-            },
-            (1, 7)
-        ]),
+        Literal::Length(Length {
+            value: ranged![12.3, (1, 5)],
+            unit: ranged!["pt".to_owned(), (5, 7)],
+        }),
     );
     assert_parsed(
         "12.pt",
-        Literal::Length(ranged![
-            Length {
-                value: 12.0,
-                unit: "pt".to_owned()
-            },
-            (1, 6)
-        ]),
+        Literal::Length(Length {
+            value: ranged![12.0, (1, 4)],
+            unit: ranged!["pt".to_owned(), (4, 6)],
+        }),
     );
     assert_parsed(
         ".3pt",
-        Literal::Length(ranged![
-            Length {
-                value: 0.3,
-                unit: "pt".to_owned()
-            },
-            (1, 5)
-        ]),
+        Literal::Length(Length {
+            value: ranged![0.3, (1, 3)],
+            unit: ranged!["pt".to_owned(), (3, 5)],
+        }),
     );
     assert_parsed(
         ".3pt2",
-        Literal::Length(ranged![
-            Length {
-                value: 0.3,
-                unit: "pt2".to_owned()
-            },
-            (1, 6)
-        ]),
+        Literal::Length(Length {
+            value: ranged![0.3, (1, 3)],
+            unit: ranged!["pt2".to_owned(), (3, 6)],
+        }),
     );
 
-    assert_parsed("` `", Literal::String(ranged!["".to_owned(), (1, 4)]));
-    assert_parsed("`a`", Literal::String(ranged!["a".to_owned(), (1, 4)]));
-    assert_parsed(
-        "`` a` ``",
-        Literal::String(ranged!["a`".to_owned(), (1, 9)]),
-    );
-    assert_parsed(
-        "`` hoge`fuga ``",
-        Literal::String(ranged!["hoge`fuga".to_owned(), (1, 16)]),
-    );
-    assert_parsed(
-        "`` hogefuga ``",
-        Literal::String(ranged!["hogefuga".to_owned(), (1, 15)]),
-    );
-    assert_parsed(
-        "#`` hoge`fuga ``",
-        Literal::String(ranged![" hoge`fuga".to_owned(), (1, 17)]),
-    );
+    assert_parsed("` `", Literal::String("".to_owned()));
+    assert_parsed("`a`", Literal::String("a".to_owned()));
+    assert_parsed("`` a` ``", Literal::String("a`".to_owned()));
+    assert_parsed("`` hoge`fuga ``", Literal::String("hoge`fuga".to_owned()));
+    assert_parsed("`` hogefuga ``", Literal::String("hogefuga".to_owned()));
+    assert_parsed("#`` hoge`fuga ``", Literal::String(" hoge`fuga".to_owned()));
     assert_parsed(
         "#`` hoge`fuga ``#",
-        Literal::String(ranged![" hoge`fuga ".to_owned(), (1, 18)]),
+        Literal::String(" hoge`fuga ".to_owned()),
     );
     assert_parsed(
         "#```` hoge```fuga ````#",
-        Literal::String(ranged![" hoge```fuga ".to_owned(), (1, 24)]),
+        Literal::String(" hoge```fuga ".to_owned()),
     );
-    assert_parsed(
-        "` hoge % fuga `",
-        Literal::String(ranged!["hoge % fuga".to_owned(), (1, 16)]),
-    );
-    assert_parsed(
-        "` hoge\nfuga `",
-        Literal::String(ranged!["hoge\nfuga".to_owned(), (1, 2), (1, 7)]),
-    );
+    assert_parsed("` hoge % fuga `", Literal::String("hoge % fuga".to_owned()));
+    assert_parsed("` hoge\nfuga `", Literal::String("hoge\nfuga".to_owned()));
     assert_not_parsed::<Literal>("``");
 }

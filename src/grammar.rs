@@ -11,19 +11,58 @@ use common::{Grammar, Ranged};
 /// プログラム全体。
 #[derive(Debug, PartialEq)]
 pub struct Program {
-    stage: Ranged<Stage>,
+    stage: Option<Ranged<Stage>>,
     header: Vec<Ranged<Header>>,
-    preamble: Ranged<Preamble>,
-    expr: Ranged<()>,
+    preamble: Option<Ranged<Preamble>>,
+    expr: Ranged<Expr>,
 }
 
 impl Grammar for Program {
     fn rule() -> Rule {
-        todo!()
+        Rule::program
     }
 
     fn parse_pair(pair: Pair<'_>) -> Self {
-        todo!()
+        let mut inner = pair.into_inner();
+
+        // header_stage があれば追加
+        let mut stage = None;
+        let next = inner.peek();
+        match next {
+            Some(pair) if pair.as_rule() == Rule::header_stage => {
+                let pair_header_stage = inner.next().unwrap();
+                stage = Some(Stage::parse_pair_ranged(pair_header_stage));
+            }
+            _ => {}
+        }
+
+        // header を追加
+        let headers = inner.next().unwrap();
+        let header = headers
+            .into_inner()
+            .map(Header::parse_pair_ranged)
+            .collect();
+
+        // preamble があれば追加
+        let mut preamble = None;
+        let next = inner.peek();
+        match next {
+            Some(pair) if pair.as_rule() == Rule::preamble => {
+                let pair_preamble = inner.next().unwrap();
+                preamble = Some(Preamble::parse_pair_ranged(pair_preamble));
+            }
+            _ => {}
+        }
+
+        // 最後に expr を追加
+        let expr = Expr::parse_pair_ranged(inner.next().unwrap());
+
+        Program {
+            stage,
+            header,
+            preamble,
+            expr,
+        }
     }
 }
 
@@ -40,11 +79,17 @@ pub enum Stage {
 
 impl Grammar for Stage {
     fn rule() -> Rule {
-        todo!()
+        Rule::header_stage
     }
 
     fn parse_pair(pair: Pair<'_>) -> Self {
-        todo!()
+        let stage = pair.into_inner().next().unwrap().as_str();
+        match stage {
+            "0" => Stage::Stage0,
+            "1" => Stage::Stage1,
+            "persistent" => Stage::Persistent,
+            _ => unreachable!(),
+        }
     }
 }
 
@@ -59,11 +104,20 @@ pub enum Header {
 
 impl Grammar for Header {
     fn rule() -> Rule {
-        todo!()
+        Rule::header
     }
 
     fn parse_pair(pair: Pair<'_>) -> Self {
-        todo!()
+        let mut inner_header = pair.into_inner();
+        let pair_header_kind = inner_header.next().unwrap();
+        let pair_pkgname = inner_header.next().unwrap();
+        let span_pkgname = pair_pkgname.as_span();
+        let pkgname = pair_pkgname.as_str().to_owned();
+        match pair_header_kind.as_str() {
+            "require" => Header::Require(Ranged::wrap(pkgname, &span_pkgname)),
+            "import" => Header::Import(Ranged::wrap(pkgname, &span_pkgname)),
+            _ => unreachable!(),
+        }
     }
 }
 
@@ -73,11 +127,15 @@ pub struct Preamble(Vec<Ranged<Statement>>);
 
 impl Grammar for Preamble {
     fn rule() -> Rule {
-        todo!()
+        Rule::preamble
     }
 
     fn parse_pair(pair: Pair<'_>) -> Self {
-        todo!()
+        Preamble(
+            pair.into_inner()
+                .map(Statement::parse_pair_ranged)
+                .collect(),
+        )
     }
 }
 
@@ -111,7 +169,10 @@ pub enum Expr {
         arms: Vec<Ranged<()>>,
     },
     /// `let xxx args = expr in`
-    BindStmt,
+    BindStmt {
+        bind: Ranged<()>,
+        body: Box<Ranged<Expr>>
+    },
     /// `while xxx do ...`
     CtrlFlowWhile {
         condition: Box<Ranged<Expr>>,
@@ -169,7 +230,7 @@ impl Grammar for Expr {
             Rule::application => todo!(),
             Rule::record_member => todo!(),
             Rule::unary => todo!(),
-            _ => unreachable!()
+            _ => unreachable!(),
         }
         todo!()
     }
@@ -185,17 +246,15 @@ pub enum Unary {
     List(List),
     Tuple(Tuple),
     BinOperator(String),
-    Expr(Box<Expr>),
     Literal(Literal),
-    ExprWithMod {
-        modname: Ranged<String>,
+    Expr {
+        modname: Option<Ranged<String>>,
         expr: Box<Ranged<Expr>>,
     },
-    ModVar {
-        modname: Ranged<String>,
+    Variable {
+        modname: Option<Ranged<String>>,
         var: Ranged<Variable>,
     },
-    Variable(Variable),
 }
 
 impl Grammar for Unary {
@@ -204,7 +263,27 @@ impl Grammar for Unary {
     }
 
     fn parse_pair(pair: Pair<'_>) -> Self {
-        todo!()
+        let inner = pair.into_inner().next().unwrap();
+        match inner.as_rule() {
+            Rule::record => Unary::Record(Record::parse_pair(inner)),
+            Rule::list => Unary::List(List::parse_pair(inner)),
+            Rule::tuple => Unary::Tuple(Tuple::parse_pair(inner)),
+            Rule::bin_operator => Unary::BinOperator(String::parse_pair(inner)),
+            Rule::literal => Unary::Literal(Literal::parse_pair(inner)),
+            Rule::block_text => todo!(),
+            Rule::horizontal_text => todo!(),
+            Rule::math_text => todo!(),
+            Rule::expr => {
+                Unary::Expr {
+                    modname: None,
+                    expr: Box::new(Expr::parse_pair_ranged(inner)),
+                }
+            },
+            Rule::expr_with_mod => todo!(),
+            Rule::modvar => todo!(),
+            Rule::var => todo!(),
+            _ => unreachable!()
+        }
     }
 }
 
@@ -234,12 +313,12 @@ impl Grammar for Record {
                 let default = Box::new(Unary::parse_pair_ranged(pair_default));
                 let map = pairs.map(RecordUnit::parse_pair).collect();
                 Record::MapWithDefault { map, default }
-            },
+            }
             Rule::record_inner => {
                 let map = pairs.map(RecordUnit::parse_pair).collect();
                 Record::Map(map)
-            },
-            _ => unreachable!()
+            }
+            _ => unreachable!(),
         }
     }
 }
@@ -261,7 +340,7 @@ impl Grammar for RecordUnit {
         let pair_expr = pairs.next().unwrap();
         let key = Ranged::wrap(pair_var_ptn.as_str().to_owned(), &pair_var_ptn.as_span());
         let val = Expr::parse_pair_ranged(pair_expr);
-        RecordUnit{ key, val }
+        RecordUnit { key, val }
     }
 }
 
@@ -305,11 +384,12 @@ pub struct Variable {
 
 impl Grammar for Variable {
     fn rule() -> Rule {
-        todo!()
+        Rule::var
     }
 
     fn parse_pair(pair: Pair<'_>) -> Self {
-        todo!()
+        let var_ptn = pair.into_inner().next().unwrap();
+        Variable{ name: var_ptn.as_str().to_owned() }
     }
 }
 
@@ -385,13 +465,86 @@ impl Grammar for VerticalElement {
 }
 
 #[derive(Debug, PartialEq)]
+pub enum Horizontal {
+    Single(HorizontalSingle),
+    List(Vec<Ranged<HorizontalSingle>>),
+    BulletList(Vec<Ranged<HorizontalBullet>>)
+}
+
+impl Grammar for Horizontal {
+    fn rule() -> Rule {
+        Rule::horizontal_mode
+    }
+
+    fn parse_pair(pair: Pair<'_>) -> Self {
+        todo!()
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub struct HorizontalBullet {
+    indent: u32,
+    body: Ranged<HorizontalSingle>
+}
+
+impl Grammar for HorizontalBullet {
+    fn rule() -> Rule {
+        Rule::horizontal_bullet
+    }
+
+    fn parse_pair(pair: Pair<'_>) -> Self {
+        todo!()
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub struct HorizontalSingle (Vec<Ranged<HorizontalToken>>);
+
+impl Grammar for HorizontalSingle {
+    fn rule() -> Rule {
+        Rule::horizontal_single
+    }
+
+    fn parse_pair(pair: Pair<'_>) -> Self {
+        todo!()
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub enum HorizontalToken {
+    Text(Ranged<String>),
+    SpecialChar(Ranged<String>),
+    HorizontalTextEmbedding {
+        mod_name: Option<Ranged<String>>,
+        name: Ranged<String>,
+    },
+    InlineCmd {
+        name: Ranged<String>,
+        args: Vec<Ranged<Expr>>,
+        opts: Vec<Ranged<Expr>>,
+    },
+    Math(Ranged<()>),
+    StringLiteral(Ranged<Literal>),
+}
+
+impl Grammar for HorizontalToken {
+    fn rule() -> Rule {
+        Rule::horizontal_token
+    }
+
+    fn parse_pair(pair: Pair<'_>) -> Self {
+        todo!()
+    }
+}
+
+#[derive(Debug, PartialEq)]
 pub enum Literal {
-    Unit(Ranged<()>),
-    Bool(Ranged<bool>),
-    String(Ranged<String>),
-    Length(Ranged<Length>),
-    Float(Ranged<f64>),
-    Int(Ranged<i32>),
+    Unit,
+    Bool(bool),
+    String(String),
+    Length(Length),
+    Float(f64),
+    Int(i32),
 }
 
 impl Grammar for Literal {
@@ -403,13 +556,12 @@ impl Grammar for Literal {
         let inner = pair.into_inner().next().unwrap();
 
         match inner.as_rule() {
-            Rule::unit_const => Literal::Unit(Ranged::wrap((), &inner.as_span())),
-            Rule::bool_const => Literal::Bool(Grammar::parse_pair_ranged(inner)),
-            Rule::int_const => Literal::Int(Grammar::parse_pair_ranged(inner)),
-            Rule::float_const => Literal::Float(Grammar::parse_pair_ranged(inner)),
-            Rule::length_const => Literal::Length(Length::parse_pair_ranged(inner)),
+            Rule::unit_const => Literal::Unit,
+            Rule::bool_const => Literal::Bool(Grammar::parse_pair(inner)),
+            Rule::int_const => Literal::Int(Grammar::parse_pair(inner)),
+            Rule::float_const => Literal::Float(Grammar::parse_pair(inner)),
+            Rule::length_const => Literal::Length(Length::parse_pair(inner)),
             Rule::string_const => Literal::String({
-                let span_string_const = inner.as_span();
                 let mut pairs_string_const = inner.into_inner();
                 let mut trim_start = true;
                 let mut trim_end = true;
@@ -437,7 +589,7 @@ impl Grammar for Literal {
                     body = body.trim_end()
                 }
 
-                Ranged::wrap(body.to_owned(), &span_string_const)
+                body.to_owned()
             }),
             rule => unreachable!(format!("invalid rule: '{:?}' in rule 'literal'", rule)),
         }
@@ -446,8 +598,8 @@ impl Grammar for Literal {
 
 #[derive(Debug, PartialOrd, PartialEq)]
 pub struct Length {
-    pub value: f64,
-    pub unit: String,
+    pub value: Ranged<f64>,
+    pub unit: Ranged<String>,
 }
 
 impl Grammar for Length {
@@ -458,9 +610,11 @@ impl Grammar for Length {
     fn parse_pair(pair: Pair<'_>) -> Self {
         let mut pairs = pair.into_inner();
         let digit = pairs.next().unwrap();
-        let unit = pairs.next().unwrap().as_str().to_owned();
-        let value: f64 = digit.as_str().parse().unwrap();
-        Length { value, unit }
+        let unit = pairs.next().unwrap();
+        Length {
+            value: Grammar::parse_pair_ranged(digit),
+            unit: String::parse_pair_ranged(unit),
+        }
     }
 }
 
@@ -505,3 +659,5 @@ impl Grammar for i32 {
         }
     }
 }
+
+

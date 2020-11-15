@@ -4,7 +4,7 @@ WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
 COMMENT = _{ "%" ~ comment_inner ~ ("\r" | "\n") }
 comment_inner = ${ (!("\r" | "\n") ~ ANY)* }
 
-program = _{ SOI ~ header_stage? ~ header* ~ (preamble ~ "in")? ~ expr ~ EOI }
+program = _{ SOI ~ header_stage? ~ headers ~ (preamble ~ "in")? ~ expr ~ EOI }
 
 // header {{{
 
@@ -14,6 +14,7 @@ header_stage = @{
     ~ (" " | "\t")* ~ ("\r" | "\n")
 }
 stage = !{ "0" | "1" | "persistent" }
+headers = { header* }
 header = @{
     "@" ~ header_kind ~ ":"
     ~ (" " | "\t")* ~ pkgname ~ ("\r" | "\n")
@@ -367,7 +368,9 @@ horizontal_mode = _{
 }
 horizontal_single = { horizontal_token* }
 horizontal_list = { "|" ~ (horizontal_single ~ "|")+ }
-horizontal_bullet_list = { ("*"+ ~ horizontal_single)+ }
+horizontal_bullet_list = { horizontal_bullet+ }
+horizontal_bullet = { horizontal_bullet_star ~ horizontal_single }
+horizontal_bullet_star = { "*"+ }
 
 horizontal_token = ${
     string_const
@@ -375,8 +378,9 @@ horizontal_token = ${
     | horizontal_text_embedding
     | "${" ~ math_mode ~ "}"
     | "\\" ~ horizontal_special_char
-    | (!horizontal_special_char ~ ANY)+
+    | regular_text
 }
+regular_text = {(!horizontal_special_char ~ ANY)+}
 horizontal_special_char = @{
     "@" | "`" | "\\" | "{" | "}" | "%" | "|" | "*" | "$" | "#" | ";"
 }
