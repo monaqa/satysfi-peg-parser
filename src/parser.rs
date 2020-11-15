@@ -15,3 +15,5 @@ pub use peg_parser::SatysfiParser;
 pub type Rule = SatysfiRule;
 pub type Pair<'i> = PestPair<'i, Rule>;
 pub type Pairs<'i> = PestPairs<'i, Rule>;
+
+mod tests;
