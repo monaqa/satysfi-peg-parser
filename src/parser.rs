@@ -8,6 +8,8 @@ mod peg_parser {
 }
 
 use peg_parser::Rule as SatysfiRule;
+use pest::iterators::Pair as PestPair;
+use pest::iterators::Pairs as PestPairs;
 
 pub use peg_parser::SatysfiParser;
 pub type Rule = SatysfiRule;

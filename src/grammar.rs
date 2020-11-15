@@ -1,7 +1,9 @@
 //! Grammar of SATySFi.
 #![allow(clippy::missing_docs_in_private_items)]
+#![allow(missing_docs)]
 
 mod common;
+mod tests;
 
 use crate::parser::{Pair, Rule};
 use common::{Grammar, Ranged};

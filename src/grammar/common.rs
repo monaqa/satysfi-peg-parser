@@ -81,7 +81,7 @@ pub trait Grammar: Sized {
     }
 
     /// 文字列をパースして自身のデータ構造に格納する。
-    fn parse<'i>(text: &str) -> Result<Self, pest::error::Error<Rule>> {
+    fn parse<'i>(text: &'i str) -> Result<Self, pest::error::Error<Rule>> {
         let mut pairs: Pairs<'i> = SatysfiParser::parse(Self::rule(), text)?;
         let pair = pairs.next().unwrap();
         Ok(Self::parse_pair(pair))
