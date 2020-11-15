@@ -3,8 +3,8 @@
 
 mod common;
 
+use crate::parser::{Pair, Rule};
 use common::{Grammar, Ranged};
-use crate::parser::{Rule, Pair};
 
 /// プログラム全体。
 #[derive(Debug, PartialEq)]
@@ -37,18 +37,17 @@ pub enum Header {
 
 /// プリアンブル部分。
 #[derive(Debug, PartialEq)]
-pub struct Preamble (Vec<Ranged<Statement>>);
+pub struct Preamble(Vec<Ranged<Statement>>);
 
 /// let や type, module などの宣言。
 #[derive(Debug, PartialEq)]
 pub enum Statement {
     /// `let ptn args = expr`
-    Let{
+    Let {
         ptn: Ranged<()>,
         args: Vec<Ranged<()>>,
         expr: Ranged<()>,
     },
-
 }
 
 /// 式。
@@ -120,12 +119,12 @@ pub enum Unary {
 }
 
 #[derive(Debug, PartialEq)]
-pub enum Record{
+pub enum Record {
     Map(Vec<RecordUnit>),
-    MapWithDefault{
+    MapWithDefault {
         map: Vec<RecordUnit>,
-        default: Box<Ranged<Unary>>
-    }
+        default: Box<Ranged<Unary>>,
+    },
 }
 
 #[derive(Debug, PartialEq)]
@@ -173,7 +172,7 @@ impl Grammar for Program {
         todo!()
     }
 
-    fn parse_pair(pair: Pair) -> Self {
+    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
         todo!()
     }
 }
@@ -183,7 +182,7 @@ impl Grammar for Stage {
         todo!()
     }
 
-    fn parse_pair(pair: Pair) -> Self {
+    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
         todo!()
     }
 }
@@ -193,7 +192,7 @@ impl Grammar for Header {
         todo!()
     }
 
-    fn parse_pair(pair: Pair) -> Self {
+    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
         todo!()
     }
 }
@@ -203,7 +202,7 @@ impl Grammar for Preamble {
         todo!()
     }
 
-    fn parse_pair(pair: Pair) -> Self {
+    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
         todo!()
     }
 }
@@ -213,7 +212,7 @@ impl Grammar for Statement {
         todo!()
     }
 
-    fn parse_pair(pair: Pair) -> Self {
+    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
         todo!()
     }
 }
@@ -223,7 +222,7 @@ impl Grammar for Expr {
         todo!()
     }
 
-    fn parse_pair(pair: Pair) -> Self {
+    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
         todo!()
     }
 }
@@ -233,7 +232,7 @@ impl Grammar for Unary {
         todo!()
     }
 
-    fn parse_pair(pair: Pair) -> Self {
+    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
         todo!()
     }
 }
@@ -243,7 +242,7 @@ impl Grammar for Record {
         todo!()
     }
 
-    fn parse_pair(pair: Pair) -> Self {
+    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
         todo!()
     }
 }
@@ -253,7 +252,7 @@ impl Grammar for RecordUnit {
         todo!()
     }
 
-    fn parse_pair(pair: Pair) -> Self {
+    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
         todo!()
     }
 }
@@ -263,7 +262,7 @@ impl Grammar for List {
         todo!()
     }
 
-    fn parse_pair(pair: Pair) -> Self {
+    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
         todo!()
     }
 }
@@ -273,7 +272,7 @@ impl Grammar for Tuple {
         todo!()
     }
 
-    fn parse_pair(pair: Pair) -> Self {
+    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
         todo!()
     }
 }
@@ -283,7 +282,7 @@ impl Grammar for Variable {
         todo!()
     }
 
-    fn parse_pair(pair: Pair) -> Self {
+    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
         todo!()
     }
 }
@@ -293,9 +292,9 @@ impl Grammar for Literal {
         Rule::literal
     }
 
-    fn parse_pair(pair: Pair) -> Self {
+    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
         // let inner = pair.into_inner().next().unwrap();
-        // 
+        //
         // match inner.as_rule() {
         //     Rule::unit_const => Literal::Unit(Ranged::wrap((), &inner.as_span())),
         //     Rule::bool_const => Literal::Bool({
@@ -344,7 +343,7 @@ impl Grammar for Literal {
         //                 _ => unreachable!(),
         //             }
         //         }
-        // 
+        //
         //         let mut body = term.as_str();
         //         if trim_start {
         //             body = body.trim_start()
@@ -352,65 +351,51 @@ impl Grammar for Literal {
         //         if trim_end {
         //             body = body.trim_end()
         //         }
-        // 
+        //
         //         Ranged::wrap(body.to_owned(), &span)
         //     }),
         //     rule => unreachable!(format!("invalid rule: '{:?}' in rule 'literal'", rule)),
         // }
         todo!()
     }
-
 }
 
-/// ソースコードの文字列をそのまま構文要素としたい場合。
 impl Grammar for Length {
-    /// なにかの Rule として parse することはない。
     fn rule() -> Rule {
         Rule::length_const
     }
 
-    fn parse_pair(pair: Pair) -> Self {
+    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
         todo!()
     }
-
 }
 
-/// ソースコードの文字列をそのまま構文要素としたい場合。
 impl Grammar for bool {
-    /// なにかの Rule として parse することはない。
     fn rule() -> Rule {
         Rule::bool_const
     }
 
-    fn parse_pair(pair: Pair) -> Self {
+    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
         todo!()
     }
-
 }
 
-/// ソースコードの文字列をそのまま構文要素としたい場合。
 impl Grammar for f64 {
-    /// なにかの Rule として parse することはない。
     fn rule() -> Rule {
         Rule::float_const
     }
 
-    fn parse_pair(pair: Pair) -> Self {
+    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
         todo!()
     }
-
 }
 
-/// ソースコードの文字列をそのまま構文要素としたい場合。
 impl Grammar for i32 {
-    /// なにかの Rule として parse することはない。
     fn rule() -> Rule {
         Rule::int_const
     }
 
-    fn parse_pair(pair: Pair) -> Self {
+    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
         todo!()
     }
-
 }
-

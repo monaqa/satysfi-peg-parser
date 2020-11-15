@@ -1,9 +1,8 @@
 //! common traits and functions.
 
-use crate::parser::{SatysfiParser, Rule, Pair, Pairs};
+use crate::parser::{Pair, Pairs, Rule, SatysfiParser};
 use pest::Parser;
 use pest::Span;
-
 
 /// ソースコード上の位置を表す構造体。
 // TODO: custom definition of Ord, PartialOrd
@@ -26,9 +25,12 @@ pub struct Ranged<T: Grammar> {
     pub end: Location,
 }
 
-impl<T> Ranged<T> where T: Grammar {
+impl<T> Ranged<T>
+where
+    T: Grammar,
+{
     /// body と span から新たな Ranged を作成する。
-    pub fn wrap(body: T, span: &Span) -> Self {
+    pub fn wrap<'i>(body: T, span: &Span<'i>) -> Self {
         let start = span.start_pos().line_col();
         let end = span.end_pos().line_col();
 
@@ -70,17 +72,17 @@ pub trait Grammar: Sized {
     fn rule() -> Rule;
 
     /// pair を読んで自身のデータ構造に格納する。
-    fn parse_pair(pair: Pair) -> Self;
+    fn parse_pair<'i>(pair: Pair<'i>) -> Self;
 
     /// pair を読んで自身のデータ構造に格納し、さらに範囲の情報を付ける。
-    fn parse_pair_ranged(pair: Pair) -> Ranged<Self> {
+    fn parse_pair_ranged<'i>(pair: Pair<'i>) -> Ranged<Self> {
         let span = pair.as_span();
         Ranged::wrap(Self::parse_pair(pair), &span)
     }
 
     /// 文字列をパースして自身のデータ構造に格納する。
-    fn parse(text: &str) -> Result<Self, pest::error::Error<Rule>> {
-        let mut pairs: Pairs = SatysfiParser::parse(Self::rule(), text)?;
+    fn parse<'i>(text: &str) -> Result<Self, pest::error::Error<Rule>> {
+        let mut pairs: Pairs<'i> = SatysfiParser::parse(Self::rule(), text)?;
         let pair = pairs.next().unwrap();
         Ok(Self::parse_pair(pair))
     }
@@ -92,7 +94,7 @@ impl Grammar for () {
         todo!()
     }
 
-    fn parse_pair(pair: Pair) -> Self {
+    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
         todo!()
     }
 }
@@ -104,7 +106,7 @@ impl Grammar for String {
         unreachable!()
     }
 
-    fn parse_pair(pair: Pair) -> Self {
+    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
         pair.as_str().to_owned()
     }
 
