@@ -15,6 +15,17 @@ pub struct Program {
     expr: Ranged<()>,
 }
 
+impl Grammar for Program {
+    fn rule() -> Rule {
+        todo!()
+    }
+
+    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
+        todo!()
+    }
+}
+
+
 /// どのステージに属するか。
 #[derive(Debug, PartialEq)]
 pub enum Stage {
@@ -26,6 +37,17 @@ pub enum Stage {
     Persistent,
 }
 
+impl Grammar for Stage {
+    fn rule() -> Rule {
+        todo!()
+    }
+
+    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
+        todo!()
+    }
+}
+
+
 /// ヘッダ。
 #[derive(Debug, PartialEq)]
 pub enum Header {
@@ -35,9 +57,30 @@ pub enum Header {
     Import(Ranged<String>),
 }
 
+impl Grammar for Header {
+    fn rule() -> Rule {
+        todo!()
+    }
+
+    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
+        todo!()
+    }
+}
+
+
 /// プリアンブル部分。
 #[derive(Debug, PartialEq)]
 pub struct Preamble(Vec<Ranged<Statement>>);
+
+impl Grammar for Preamble {
+    fn rule() -> Rule {
+        todo!()
+    }
+
+    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
+        todo!()
+    }
+}
 
 /// let や type, module などの宣言。
 #[derive(Debug, PartialEq)]
@@ -49,6 +92,17 @@ pub enum Statement {
         expr: Ranged<()>,
     },
 }
+
+impl Grammar for Statement {
+    fn rule() -> Rule {
+        todo!()
+    }
+
+    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
+        todo!()
+    }
+}
+
 
 /// 式。
 #[derive(Debug, PartialEq)]
@@ -95,6 +149,17 @@ pub enum Expr {
     Unary(Ranged<()>),
 }
 
+impl Grammar for Expr {
+    fn rule() -> Rule {
+        todo!()
+    }
+
+    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
+        todo!()
+    }
+}
+
+
 /// 単項式。
 #[derive(Debug, PartialEq)]
 pub enum Unary {
@@ -118,115 +183,6 @@ pub enum Unary {
     Variable(Variable),
 }
 
-#[derive(Debug, PartialEq)]
-pub enum Record {
-    Map(Vec<RecordUnit>),
-    MapWithDefault {
-        map: Vec<RecordUnit>,
-        default: Box<Ranged<Unary>>,
-    },
-}
-
-#[derive(Debug, PartialEq)]
-pub struct RecordUnit {
-    key: Ranged<String>,
-    val: Ranged<Expr>,
-}
-
-#[derive(Debug, PartialEq)]
-pub struct List(Vec<Ranged<Expr>>);
-
-#[derive(Debug, PartialEq)]
-pub struct Tuple(Vec<Ranged<Expr>>);
-
-#[derive(Debug, PartialEq)]
-pub struct Variant {
-    name: String,
-}
-
-#[derive(Debug, PartialEq)]
-pub struct Variable {
-    name: String,
-}
-
-#[derive(Debug, PartialEq)]
-pub enum Literal {
-    Unit(Ranged<()>),
-    Bool(Ranged<bool>),
-    String(Ranged<String>),
-    Length(Ranged<Length>),
-    Float(Ranged<f64>),
-    Int(Ranged<i32>),
-}
-
-#[derive(Debug, PartialOrd, PartialEq)]
-pub struct Length {
-    pub value: f64,
-    pub unit: String,
-}
-
-/// 実際に評価される部分
-
-impl Grammar for Program {
-    fn rule() -> Rule {
-        todo!()
-    }
-
-    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
-        todo!()
-    }
-}
-
-impl Grammar for Stage {
-    fn rule() -> Rule {
-        todo!()
-    }
-
-    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
-        todo!()
-    }
-}
-
-impl Grammar for Header {
-    fn rule() -> Rule {
-        todo!()
-    }
-
-    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
-        todo!()
-    }
-}
-
-impl Grammar for Preamble {
-    fn rule() -> Rule {
-        todo!()
-    }
-
-    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
-        todo!()
-    }
-}
-
-impl Grammar for Statement {
-    fn rule() -> Rule {
-        todo!()
-    }
-
-    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
-        todo!()
-    }
-}
-
-impl Grammar for Expr {
-    fn rule() -> Rule {
-        todo!()
-    }
-
-    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
-        todo!()
-    }
-}
-
 impl Grammar for Unary {
     fn rule() -> Rule {
         todo!()
@@ -235,6 +191,16 @@ impl Grammar for Unary {
     fn parse_pair<'i>(pair: Pair<'i>) -> Self {
         todo!()
     }
+}
+
+
+#[derive(Debug, PartialEq)]
+pub enum Record {
+    Map(Vec<RecordUnit>),
+    MapWithDefault {
+        map: Vec<RecordUnit>,
+        default: Box<Ranged<Unary>>,
+    },
 }
 
 impl Grammar for Record {
@@ -247,6 +213,13 @@ impl Grammar for Record {
     }
 }
 
+
+#[derive(Debug, PartialEq)]
+pub struct RecordUnit {
+    key: Ranged<String>,
+    val: Ranged<Expr>,
+}
+
 impl Grammar for RecordUnit {
     fn rule() -> Rule {
         todo!()
@@ -256,6 +229,10 @@ impl Grammar for RecordUnit {
         todo!()
     }
 }
+
+
+#[derive(Debug, PartialEq)]
+pub struct List(Vec<Ranged<Expr>>);
 
 impl Grammar for List {
     fn rule() -> Rule {
@@ -267,6 +244,9 @@ impl Grammar for List {
     }
 }
 
+#[derive(Debug, PartialEq)]
+pub struct Tuple(Vec<Ranged<Expr>>);
+
 impl Grammar for Tuple {
     fn rule() -> Rule {
         todo!()
@@ -277,6 +257,16 @@ impl Grammar for Tuple {
     }
 }
 
+#[derive(Debug, PartialEq)]
+pub struct Variant {
+    name: String,
+}
+
+#[derive(Debug, PartialEq)]
+pub struct Variable {
+    name: String,
+}
+
 impl Grammar for Variable {
     fn rule() -> Rule {
         todo!()
@@ -285,6 +275,53 @@ impl Grammar for Variable {
     fn parse_pair<'i>(pair: Pair<'i>) -> Self {
         todo!()
     }
+}
+
+
+#[derive(Debug, PartialEq)]
+pub struct Vertical(Vec<Ranged<VerticalElement>>);
+
+impl Grammar for Vertical {
+    fn rule() -> Rule {
+        Rule::int_const
+    }
+
+    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
+        todo!()
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub enum VerticalElement {
+    BlockCmd {
+        name: Ranged<String>,
+        args: Vec<Ranged<Expr>>,
+        opts: Vec<Ranged<Expr>>,
+    },
+    BlockTextEmbedding {
+        mod_name: Option<Ranged<()>>,
+        name: Ranged<String>,
+    },
+}
+
+impl Grammar for VerticalElement {
+    fn rule() -> Rule {
+        Rule::int_const
+    }
+
+    fn parse_pair<'i>(pair: Pair<'i>) -> Self {
+        todo!()
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub enum Literal {
+    Unit(Ranged<()>),
+    Bool(Ranged<bool>),
+    String(Ranged<String>),
+    Length(Ranged<Length>),
+    Float(Ranged<f64>),
+    Int(Ranged<i32>),
 }
 
 impl Grammar for Literal {
@@ -358,6 +395,12 @@ impl Grammar for Literal {
         // }
         todo!()
     }
+}
+
+#[derive(Debug, PartialOrd, PartialEq)]
+pub struct Length {
+    pub value: f64,
+    pub unit: String,
 }
 
 impl Grammar for Length {
